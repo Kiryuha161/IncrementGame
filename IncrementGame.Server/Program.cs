@@ -1,6 +1,10 @@
-
+using Incremental.Core.Managers;
+using Incremental.Core.Managers.Interfaces;
+using Incremental.Core.ModelFactories.Factories;
+using Incremental.Core.ModelFactories.Interfaces;
 using Incremental.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Serilog;
 
 namespace IncrementGame.Server
@@ -39,12 +43,27 @@ namespace IncrementGame.Server
                 // Add services to the container.
 
                 builder.Services.AddControllers();
+
+                builder.Services.AddCors(options =>
+                {
+                    options.AddPolicy("AllowAll", policy =>
+                    {
+                        policy.AllowAnyOrigin()
+                              .AllowAnyMethod()
+                              .AllowAnyHeader();
+                    });
+                });
+
                 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
                 builder.Services.AddEndpointsApiExplorer();
                 builder.Services.AddSwaggerGen();
 
                 builder.Services.AddDbContext<ProjectContext>(options =>
                     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+                builder.Services.AddScoped<IPointManager, SingleGamePointManager>();
+                builder.Services.AddScoped<IPointFactory, PointFactory>();
+                builder.Services.AddScoped<SingleGameCacheManager>();
 
                 var app = builder.Build();
 
@@ -83,6 +102,7 @@ namespace IncrementGame.Server
                 }
 
                 app.UseHttpsRedirection();
+                app.UseCors("AllowAll");
 
                 app.UseAuthorization();
 
