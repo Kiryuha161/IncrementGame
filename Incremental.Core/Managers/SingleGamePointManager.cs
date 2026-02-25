@@ -73,6 +73,8 @@ namespace Incremental.Core.Managers
 
             point.Amount = state.Value;
             point.ClickPower = state.ClickPower;
+            point.PassiveIncome = state.PassiveIncome;
+            point.PassiveInterval = state.PassiveInterval;
 
             await _context.SaveChangesAsync();
 
@@ -99,5 +101,29 @@ namespace Incremental.Core.Managers
             return point;
         }
 
+        public async Task<GameStateDto> ProcessPassiveIncomeAsync()
+        {
+            var point = await GetPointAsync();
+            if (point == null || point.PassiveInterval <= 0)
+                return _pointFactory.PrepareGameStateDto(point);
+
+            var now = DateTime.UtcNow;
+            var timeSinceLastTick = (now - point.LastPassiveTick).TotalSeconds;
+
+            if (timeSinceLastTick >= point.PassiveInterval)
+            {
+                // Сколько тиков прошло
+                int ticks = (int)(timeSinceLastTick / point.PassiveInterval);
+                if (ticks > 0)
+                {
+                    point.Amount += point.PassiveIncome * ticks;
+                    point.LastPassiveTick = point.LastPassiveTick.AddSeconds(ticks * point.PassiveInterval);
+                    await _context.SaveChangesAsync();
+                    _cache.SetPoint(point);
+                }
+            }
+
+            return _pointFactory.PrepareGameStateDto(point);
+        }
     }
 }

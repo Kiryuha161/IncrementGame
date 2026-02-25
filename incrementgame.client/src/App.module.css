@@ -1,0 +1,189 @@
+/* App.module.css */
+
+/* Контейнеры */
+.container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+}
+
+/* Основной блок */
+.mainBlock {
+    background-color: #f5f5f5;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+/* Счетчик очков */
+.pointsCounter {
+    font-size: 48px;
+    margin: 0 0 10px 0;
+}
+
+/* Сетка статистики */
+.statsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+    margin-top: 20px;
+}
+
+/* Карточка статистики */
+.statCard {
+    background-color: #e0e0e0;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.statLabel {
+    font-size: 12px;
+    color: #666;
+}
+
+.statValue {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+/* Статус синхронизации */
+.syncStatus {
+    margin-top: 15px;
+    font-size: 14px;
+}
+
+.syncing {
+    color: orange;
+}
+
+.synced {
+    color: green;
+}
+
+.error {
+    color: red;
+}
+
+/* Кнопка клика */
+.clickButton {
+    width: 100%;
+    padding: 30px;
+    font-size: 24px;
+    font-weight: bold;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-bottom: 20px;
+    transition: transform 0.1s;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+    .clickButton:active {
+        transform: scale(0.95);
+    }
+
+    .clickButton:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+/* Кнопка показа улучшений */
+.toggleButton {
+    width: 100%;
+    padding: 10px;
+    background-color: #2196F3;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-bottom: 10px;
+}
+
+/* Сетка улучшений */
+.upgradesGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+/* Карточка улучшения */
+.upgradeCard {
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.upgradeIcon {
+    font-size: 24px;
+    margin-bottom: 5px;
+}
+
+.upgradeTitle {
+    margin: 5px 0;
+}
+
+.upgradeDescription {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 10px;
+}
+
+.upgradePrice {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+/* Кнопка покупки */
+.buyButton {
+    padding: 8px 16px;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 100%;
+}
+
+/* Типы улучшений */
+.clickUpgrade {
+    background-color: #fff3e0;
+    border: 1px solid #ffb74d;
+}
+
+    .clickUpgrade .buyButton {
+        background-color: #ff9800;
+    }
+
+.passiveUpgrade {
+    background-color: #e8f5e8;
+    border: 1px solid #81c784;
+}
+
+    .passiveUpgrade .buyButton {
+        background-color: #4caf50;
+    }
+
+.speedUpgrade {
+    background-color: #e3f2fd;
+    border: 1px solid #64b5f6;
+}
+
+    .speedUpgrade .buyButton {
+        background-color: #2196f3;
+    }
+
+/* Подвал */
+.footer {
+    margin-top: 20px;
+    padding: 10px;
+    text-align: center;
+    font-size: 12px;
+    color: #999;
+    border-top: 1px solid #eee;
+}

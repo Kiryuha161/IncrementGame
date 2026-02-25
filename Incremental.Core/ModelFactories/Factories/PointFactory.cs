@@ -21,7 +21,9 @@ namespace Incremental.Core.ModelFactories.Factories
             GameStateDto dto = new GameStateDto
             {
                 Value = point.Amount,
-                ClickPower = point.ClickPower
+                ClickPower = point.ClickPower,
+                PassiveIncome = point.PassiveIncome,
+                PassiveInterval = point.PassiveInterval,
             };
 
             return dto;

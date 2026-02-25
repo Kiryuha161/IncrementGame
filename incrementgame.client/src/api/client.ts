@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://localhost:7261/api';
+п»їconst API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://localhost:7261/api';
 
 interface ApiResponse<T = any> {
     success: boolean;
@@ -7,7 +7,7 @@ interface ApiResponse<T = any> {
     errors?: string[];
 }
 
-// Простые функции для запросов
+// РџСЂРѕСЃС‚С‹Рµ С„СѓРЅРєС†РёРё РґР»СЏ Р·Р°РїСЂРѕСЃРѕРІ
 async function get<T>(endpoint: string): Promise<ApiResponse<T>> {
     try {
         const response = await fetch(`${API_BASE_URL}${endpoint}`, {

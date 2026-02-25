@@ -1,5 +1,5 @@
 ﻿import { useState, useEffect, useCallback } from 'react';
-import { getGameState, saveGameState } from '../api/points';
+import { getGameState, saveGameState, processPassiveIncome } from '../api/points';
 import type { GameState } from '../api/points';
 
 export function useGame() {
@@ -8,6 +8,22 @@ export function useGame() {
     const [error, setError] = useState<string | null>(null);
     const [syncStatus, setSyncStatus] = useState<'synced' | 'syncing' | 'error'>('synced');
     const [pendingClicks, setPendingClicks] = useState<number>(0);
+
+    // Пассивный доход
+    useEffect(() => {
+        if (!state || state.passiveInterval <= 0 || state.passiveIncome <= 0) return;
+
+        const timer = setInterval(async () => {
+            try {
+                const data = await processPassiveIncome(); 
+                setState(data);
+            } catch (err) {
+                console.error('Passive income error:', err);
+            }
+        }, state.passiveInterval * 1000);
+
+        return () => clearInterval(timer);
+    }, [state?.passiveInterval, state?.passiveIncome]);
 
     const loadState = useCallback(async () => {
         setLoading(true);
@@ -29,7 +45,9 @@ export function useGame() {
         try {
             await saveGameState({
                 value: state.value,  
-                clickPower: state.clickPower
+                clickPower: state.clickPower,
+                passiveIncome: state.passiveIncome,
+                passiveInterval: state.passiveInterval
             });
 
             setPendingClicks(0);
@@ -63,7 +81,7 @@ export function useGame() {
 
         setPendingClicks(prev => prev + 1);
         setSyncStatus('syncing');
-    }, [state]); // 👈 зависимость от state
+    }, [state]); 
 
     useEffect(() => {
         loadState();
