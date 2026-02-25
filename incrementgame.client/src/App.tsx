@@ -1,8 +1,27 @@
 ﻿import './App.css'
 import { useGame } from './hooks/useGame';
+import { startSignalR, stopSignalR } from './api/signalR';
+import { useEffect } from 'react';
 
 function App() {
-    const { state, loading, error, syncStatus, click } = useGame();
+    const { state, setState, loading, error, syncStatus, setSyncStatus, click } = useGame();
+
+    useEffect(() => {
+        // Подключаем SignalR при монтировании
+        startSignalR(
+            (updatedState) => {
+                setState(updatedState);
+                setSyncStatus('synced');
+            },
+            (count) => {
+                console.log('Активных клиентов:', count);
+            }
+        );
+
+        return () => {
+            stopSignalR();
+        };
+    }, []);
 
     if (loading && !state) return <div>Загрузка...</div>;
     if (error) return <div>Ошибка: {error}</div>;

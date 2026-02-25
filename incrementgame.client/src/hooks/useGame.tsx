@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+п»їimport { useState, useEffect, useCallback } from 'react';
 import { getGameState, saveGameState } from '../api/points';
 import type { GameState } from '../api/points';
 
@@ -7,10 +7,6 @@ export function useGame() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [syncStatus, setSyncStatus] = useState<'synced' | 'syncing' | 'error'>('synced');
-
-    // Обычные state для локальных значений
-    const [localValue, setLocalValue] = useState<number>(0);
-    const [localPower, setLocalPower] = useState<number>(1);
     const [pendingClicks, setPendingClicks] = useState<number>(0);
 
     const loadState = useCallback(async () => {
@@ -18,24 +14,22 @@ export function useGame() {
         try {
             const data = await getGameState();
             setState(data);
-            setLocalValue(data.value);
-            setLocalPower(data.clickPower);
             setError(null);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Ошибка при загрузке');
+            setError(err instanceof Error ? err.message : 'РћС€РёР±РєР° РїСЂРё Р·Р°РіСЂСѓР·РєРµ');
         } finally {
             setLoading(false);
         }
     }, []);
 
     const syncWithServer = useCallback(async () => {
-        if (pendingClicks === 0) return;
+        if (pendingClicks === 0 || !state) return;
 
         setSyncStatus('syncing');
         try {
             await saveGameState({
-                value: localValue,
-                clickPower: localPower
+                value: state.value,  
+                clickPower: state.clickPower
             });
 
             setPendingClicks(0);
@@ -43,11 +37,11 @@ export function useGame() {
             setError(null);
         } catch (err) {
             setSyncStatus('error');
-            setError('Ошибка при сохранении');
+            setError('РћС€РёР±РєР° РїСЂРё СЃРѕС…СЂР°РЅРµРЅРёРё');
         }
-    }, [localValue, localPower, pendingClicks]);
+    }, [state, pendingClicks]); 
 
-    // Автосохранение каждые 3 секунды
+    // РђРІС‚РѕСЃРѕС…СЂР°РЅРµРЅРёРµ РєР°Р¶РґС‹Рµ 3 СЃРµРєСѓРЅРґС‹
     useEffect(() => {
         const timer = setTimeout(() => {
             if (pendingClicks > 0) {
@@ -56,24 +50,20 @@ export function useGame() {
         }, 3000);
 
         return () => clearTimeout(timer);
-    }, [localValue, pendingClicks, syncWithServer]);
+    }, [pendingClicks, syncWithServer]);
 
     const click = useCallback(async () => {
         if (!state) return;
 
-        // Мгновенно обновляем локальное значение
-        const newValue = localValue + localPower;
-        setLocalValue(newValue);
-        setPendingClicks(prev => prev + 1);
-
-        // Обновляем UI
+        // РњРіРЅРѕРІРµРЅРЅРѕ РѕР±РЅРѕРІР»СЏРµРј UI
         setState(prev => prev ? {
             ...prev,
-            value: newValue
+            value: prev.value + prev.clickPower  
         } : null);
 
+        setPendingClicks(prev => prev + 1);
         setSyncStatus('syncing');
-    }, [state, localValue, localPower]);
+    }, [state]); // рџ‘€ Р·Р°РІРёСЃРёРјРѕСЃС‚СЊ РѕС‚ state
 
     useEffect(() => {
         loadState();
@@ -81,9 +71,11 @@ export function useGame() {
 
     return {
         state,
+        setState,        // РґР»СЏ SignalR
         loading,
         error,
         syncStatus,
+        setSyncStatus,   // РґР»СЏ SignalR
         click,
         refresh: loadState
     };

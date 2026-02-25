@@ -11,18 +11,6 @@ namespace IncrementGame.Server.Hubs
 
         public async Task SendGameStateUpdate(GameStateDto gameState)
         {
-            // 👇 МАКСИМАЛЬНО ПОДРОБНО
-            Log.Information("═══════════════════════════════════════");
-            Log.Information($"📢 SendGameStateUpdate вызван");
-            Log.Information($"📢 Отправитель: {Context.ConnectionId}");
-            Log.Information($"📢 Данные: Value={gameState.Value}, Power={gameState.ClickPower}");
-            Log.Information($"📢 Всего клиентов: {_connectedClients.Count}");
-
-            foreach (var client in _connectedClients)
-            {
-                Log.Information($"📢 Клиент: {client.Key}");
-            }
-
             try
             {
                 await Clients.All.SendAsync("ReceiveGameStateUpdate", gameState);
@@ -32,7 +20,6 @@ namespace IncrementGame.Server.Hubs
             {
                 Log.Error($"❌ Ошибка отправки: {ex.Message}");
             }
-            Log.Information("═══════════════════════════════════════");
 
             // Отправляем всем обновленный счетчик клиентов
             await Clients.All.SendAsync("UpdateClientCount", _connectedClients.Count);

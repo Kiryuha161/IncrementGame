@@ -43,10 +43,7 @@ namespace IncrementGame.Server.Controllers
             try
             {
                 var dto = await _pointManager.ClickAsync();
-
-                // 👇 ОТПРАВКА SIGNALR ПОСЛЕ КЛИКА
                 await _hubContext.Clients.All.SendAsync("ReceiveGameStateUpdate", dto);
-                Log.Information("📢 Отправка SignalR после клика: Value={Value}", dto.Value);
 
                 return Ok(ApiResult.Ok(dto, "Клик выполнен"));
             }
@@ -63,17 +60,13 @@ namespace IncrementGame.Server.Controllers
             try
             {
                 await _pointManager.SaveStateAsync(state);
-
-                Log.Information("📢 Отправка SignalR после сохранения: Value={Value}", state.Value);
-
                 await _hubContext.Clients.All.SendAsync("ReceiveGameStateUpdate", state);
-                Log.Information("✅ SignalR успешно отправлен всем клиентам");
 
                 return Ok(ApiResult.Ok(null, "Сохранено"));
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "❌ Ошибка при отправке SignalR");
+                Log.Error(ex, "Ошибка при отправке SignalR");
                 return StatusCode(500, ApiResult.Fail("Ошибка сервера"));
             }
         }
