@@ -1,0 +1,92 @@
+﻿<Window x:Class="IncrementGame.WPF.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:IncrementGame.WPF.Converters"
+        Title="Increment Game" Height="350" Width="400"
+        WindowStartupLocation="CenterScreen">
+
+    <Window.Resources>
+        <local:BooleanToBrushConverter x:Key="BooleanToBrushConverter"/>
+    </Window.Resources>
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Очки -->
+        <StackPanel Grid.Row="0" Margin="0,20" HorizontalAlignment="Center">
+            <TextBlock Text="{Binding TotalPoints, StringFormat='Очки: {0}'}" 
+                       FontSize="32" FontWeight="Bold"/>
+            <TextBlock Text="{Binding ClickPower, StringFormat='Сила клика: {0}'}" 
+                       FontSize="18" Margin="0,5"/>
+        </StackPanel>
+
+        <!-- Статус синхронизации -->
+        <TextBlock Grid.Row="1" 
+                   HorizontalAlignment="Center"
+                   FontSize="12"
+                   Margin="0,5">
+            <TextBlock.Style>
+                <Style TargetType="TextBlock">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding SyncStatus}" Value="syncing">
+                            <Setter Property="Text" Value="⏳ Сохранение..."/>
+                            <Setter Property="Foreground" Value="Orange"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding SyncStatus}" Value="synced">
+                            <Setter Property="Text" Value="💾 Все сохранено"/>
+                            <Setter Property="Foreground" Value="Green"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding SyncStatus}" Value="error">
+                            <Setter Property="Text" Value="⚠️ Ошибка сохранения"/>
+                            <Setter Property="Foreground" Value="Red"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </TextBlock.Style>
+        </TextBlock>
+
+        <!-- Информация о SignalR -->
+        <StackPanel Grid.Row="2" 
+                    Orientation="Horizontal" 
+                    HorizontalAlignment="Center" 
+                    Margin="0,5">
+            <TextBlock Text="Real-time: " FontSize="10" Margin="0,0,3,0"/>
+            <TextBlock Text="{Binding SignalRStatus}" FontSize="10" 
+                       Foreground="{Binding IsConnected, Converter={StaticResource BooleanToBrushConverter}}"/>
+        </StackPanel>
+
+        <!-- Количество активных клиентов (опционально) -->
+        <TextBlock Grid.Row="3" 
+                   Text="{Binding ActiveClients, StringFormat='Активных клиентов: {0}'}" 
+                   HorizontalAlignment="Center" 
+                   FontSize="10" 
+                   Margin="0,2"/>
+
+        <!-- Ошибка -->
+        <TextBlock Grid.Row="4" 
+                   Text="{Binding ErrorMessage}" 
+                   Foreground="Red"
+                   HorizontalAlignment="Center"
+                   TextWrapping="Wrap"
+                   Margin="0,5"/>
+
+        <!-- Кнопка клика -->
+        <Button Grid.Row="5" 
+                Content="КЛИК!" 
+                FontSize="24" 
+                FontWeight="Bold"
+                Height="100" 
+                Width="200"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Click="Button_Click"
+                IsEnabled="{Binding IsConnected}"/>
+    </Grid>
+</Window>

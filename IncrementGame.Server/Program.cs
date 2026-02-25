@@ -3,6 +3,7 @@ using Incremental.Core.Managers.Interfaces;
 using Incremental.Core.ModelFactories.Factories;
 using Incremental.Core.ModelFactories.Interfaces;
 using Incremental.Data;
+using IncrementGame.Server.Hubs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Serilog;
@@ -44,13 +45,16 @@ namespace IncrementGame.Server
 
                 builder.Services.AddControllers();
 
+                builder.Services.AddSignalR();
+
                 builder.Services.AddCors(options =>
                 {
                     options.AddPolicy("AllowAll", policy =>
                     {
-                        policy.AllowAnyOrigin()
+                        policy.SetIsOriginAllowed(origin => true) // Для SignalR важно!
                               .AllowAnyMethod()
-                              .AllowAnyHeader();
+                              .AllowAnyHeader()
+                              .AllowCredentials(); // SignalR требует AllowCredentials
                     });
                 });
 
@@ -108,6 +112,8 @@ namespace IncrementGame.Server
 
 
                 app.MapControllers();
+
+                app.MapHub<GameHub>("/gameHub");
 
                 app.MapFallbackToFile("/index.html");
 
