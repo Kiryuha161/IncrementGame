@@ -11,5 +11,6 @@ namespace Incremental.Core.ModelFactories.Interfaces
     public interface IPointFactory
     {
         GameStateDto PrepareGameStateDto(Point point);
+        GameStateDto PrepareDefaultGameStateDto();
     }
 }

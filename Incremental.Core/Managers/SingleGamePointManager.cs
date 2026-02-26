@@ -3,6 +3,7 @@ using Incremental.Core.Managers.Interfaces;
 using Incremental.Core.ModelFactories.Interfaces;
 using Incremental.Data;
 using Incremental.Data.Domain;
+using Incremental.Data.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using System;
@@ -19,28 +20,59 @@ namespace Incremental.Core.Managers
         private readonly ProjectContext _context;
         private readonly IPointFactory _pointFactory;
         private readonly SingleGameCacheManager _cache;
-        public SingleGamePointManager(ProjectContext context, IPointFactory pointFactory, SingleGameCacheManager cache)
+        private readonly IGameCalculationManager _calculations;
+
+        public SingleGamePointManager(
+            ProjectContext context,
+            IPointFactory pointFactory,
+            SingleGameCacheManager cache,
+            IGameCalculationManager calculations)
         {
             _context = context;
             _pointFactory = pointFactory;
             _cache = cache;
+            _calculations = calculations;
+        }
+
+        // Вспомогательный метод для получения полных данных
+        private async Task<Point?> GetPointWithUpgradesAsync(bool forceRefresh = false)
+        {
+            // Пробуем получить из кэша (без улучшений)
+            if (!forceRefresh && _cache.TryGetCachedPoint(out var cachedPoint))
+            {
+                return cachedPoint;
+            }
+
+            var point = await _context.Points
+                .Include(p => p.PlayerUpgrades)
+                    .ThenInclude(pu => pu.Upgrade)
+                .FirstOrDefaultAsync();
+
+            if (point != null)
+            {
+                _cache.SetPoint(point);
+            }
+
+            return point;
         }
 
         public async Task<GameStateDto> ClickAsync()
         {
-            var point = await GetPointAsync();
+            var point = await GetPointWithUpgradesAsync();
 
             if (point == null)
             {
                 point = new Point
                 {
-                    Amount = 0,
-                    ClickPower = 1
+                    Amount = 0
                 };
                 _context.Points.Add(point);
+                await _context.SaveChangesAsync();
             }
 
-            point.Amount += point.ClickPower;
+            var clickPower = _calculations.CalculateTotalClickPower(point);
+            point.Amount += clickPower;
+
             await _context.SaveChangesAsync();
 
             // Обновляем кэш
@@ -51,11 +83,11 @@ namespace Incremental.Core.Managers
 
         public async Task<GameStateDto> GetStateAsync()
         {
-            var point = await GetPointAsync();
+            var point = await GetPointWithUpgradesAsync();
 
             if (point == null)
             {
-                return await ClickAsync();
+                return _pointFactory.PrepareDefaultGameStateDto();
             }
 
             return _pointFactory.PrepareGameStateDto(point);
@@ -63,7 +95,7 @@ namespace Incremental.Core.Managers
 
         public async Task SaveStateAsync(GameStateDto state)
         {
-            var point = await GetPointAsync(forceRefresh: true);
+            var point = await GetPointWithUpgradesAsync(forceRefresh: true);
 
             if (point == null)
             {
@@ -72,9 +104,6 @@ namespace Incremental.Core.Managers
             }
 
             point.Amount = state.Value;
-            point.ClickPower = state.ClickPower;
-            point.PassiveIncome = state.PassiveIncome;
-            point.PassiveInterval = state.PassiveInterval;
 
             await _context.SaveChangesAsync();
 
@@ -82,42 +111,30 @@ namespace Incremental.Core.Managers
             _cache.SetPoint(point);
         }
 
-        private async Task<Point?> GetPointAsync(bool forceRefresh = false)
-        {
-            // Пробуем получить из кэша
-            if (!forceRefresh && _cache.TryGetCachedPoint(out var cachedPoint))
-            {
-                return cachedPoint;
-            }
-
-            // Идем в БД
-            var point = await _context.Points.FirstOrDefaultAsync();
-
-            if (point != null)
-            {
-                _cache.SetPoint(point); // Сохраняем в кэш
-            }
-
-            return point;
-        }
-
         public async Task<GameStateDto> ProcessPassiveIncomeAsync()
         {
-            var point = await GetPointAsync();
-            if (point == null || point.PassiveInterval <= 0)
+            var point = await GetPointWithUpgradesAsync();
+            if (point == null)
+                return _pointFactory.PrepareDefaultGameStateDto();
+
+            var interval = _calculations.CalculateTotalPassiveInterval(point);
+            if (interval <= 0)
                 return _pointFactory.PrepareGameStateDto(point);
 
             var now = DateTime.UtcNow;
-            var timeSinceLastTick = (now - point.LastPassiveTick).TotalSeconds;
+            var lastPassiveTick = point.LastPassiveTick ?? now.AddMilliseconds(-interval);
 
-            if (timeSinceLastTick >= point.PassiveInterval)
+            var timeSinceLastTick = (now - lastPassiveTick).TotalMilliseconds;
+
+            if (timeSinceLastTick >= interval)
             {
-                // Сколько тиков прошло
-                int ticks = (int)(timeSinceLastTick / point.PassiveInterval);
+                int ticks = (int)(timeSinceLastTick / interval);
                 if (ticks > 0)
                 {
-                    point.Amount += point.PassiveIncome * ticks;
-                    point.LastPassiveTick = point.LastPassiveTick.AddSeconds(ticks * point.PassiveInterval);
+                    var passiveIncome = _calculations.CalculateTotalPassiveIncome(point);
+                    point.Amount += passiveIncome * ticks;
+                    point.LastPassiveTick = lastPassiveTick.AddMilliseconds(ticks * interval);
+
                     await _context.SaveChangesAsync();
                     _cache.SetPoint(point);
                 }

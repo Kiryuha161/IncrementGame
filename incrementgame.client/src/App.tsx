@@ -2,13 +2,17 @@
 import { useGame } from './hooks/useGame';
 import { startSignalR, stopSignalR } from './api/signalR';
 import { useEffect, useState } from 'react';
-import styles from './App.module.css'; 
+import styles from './App.module.css';
 
 function App() {
-    const { state, setState, loading, error, syncStatus, setSyncStatus, click } = useGame();
+    const {
+        state, setState, upgrades, loading, error, syncStatus,
+        setSyncStatus, click, buyUpgrade
+    } = useGame();
     const [showUpgrades, setShowUpgrades] = useState(false);
 
     useEffect(() => {
+        if (!state) return;
         startSignalR(
             (updatedState) => {
                 setState(updatedState);
@@ -28,16 +32,14 @@ function App() {
     if (error) return <div>Ошибка: {error}</div>;
     if (!state) return <div>Нет данных</div>;
 
-    const buyClickUpgrade = () => alert('Улучшение силы клика (будет позже)');
-    const buyPassiveUpgrade = () => alert('Улучшение пассивного дохода (будет позже)');
-    const buySpeedUpgrade = () => alert('Улучшение скорости пассивного дохода (будет позже)');
-
     const formattedPassiveInterval = (state.passiveInterval / 1000).toFixed(1);
+    const syncStatusClass = syncStatus === 'syncing' ? styles.syncing :
+        syncStatus === 'synced' ? styles.synced : styles.error;
 
-    // Определяем класс статуса синхронизации
-    const syncStatusClass =
-        syncStatus === 'syncing' ? styles.syncing :
-            syncStatus === 'synced' ? styles.synced : styles.error;
+    // Группируем улучшения по типу
+    const clickUpgrade = upgrades.find(u => u.upgradeType === 'ClickPower');
+    const passiveUpgrade = upgrades.find(u => u.upgradeType === 'PassiveIncome');
+    const speedUpgrade = upgrades.find(u => u.upgradeType === 'PassiveInterval');
 
     return (
         <div className={styles.container}>
@@ -95,58 +97,88 @@ function App() {
             {showUpgrades && (
                 <div className={styles.upgradesGrid}>
                     {/* Улучшение клика */}
-                    <div className={`${styles.upgradeCard} ${styles.clickUpgrade}`}>
-                        <div className={styles.upgradeIcon}>⚡</div>
-                        <h3 className={styles.upgradeTitle}>Сила клика +1</h3>
-                        <div className={styles.upgradeDescription}>
-                            Увеличивает количество очков за клик
+                    {clickUpgrade && (
+                        <div className={`${styles.upgradeCard} ${styles.clickUpgrade}`}>
+                            <div className={styles.upgradeIcon}>⚡</div>
+                            <h3 className={styles.upgradeTitle}>{clickUpgrade.name}</h3>
+                            <div className={styles.upgradeDescription}>
+                                {clickUpgrade.description}
+                            </div>
+                            <div className={styles.upgradeStats}>
+                                <div>Уровень: {clickUpgrade.currentLevel}</div>
+                                <div>Текущее: +{clickUpgrade.currentValue}</div>
+                                <div>Следующее: +{clickUpgrade.nextValue}</div>
+                            </div>
+                            <div className={styles.upgradePrice}>
+                                {clickUpgrade.currentPrice.toLocaleString()} очков
+                            </div>
+                            <button
+                                onClick={() => buyUpgrade(clickUpgrade.id)}
+                                className={styles.buyButton}
+                                disabled={state.value < clickUpgrade.currentPrice}
+                            >
+                                Купить
+                            </button>
                         </div>
-                        <div className={styles.upgradePrice}>100 очков</div>
-                        <button
-                            onClick={buyClickUpgrade}
-                            className={styles.buyButton}
-                        >
-                            Купить
-                        </button>
-                    </div>
+                    )}
 
                     {/* Улучшение пассивного дохода */}
-                    <div className={`${styles.upgradeCard} ${styles.passiveUpgrade}`}>
-                        <div className={styles.upgradeIcon}>💰</div>
-                        <h3 className={styles.upgradeTitle}>Пассивный доход +1</h3>
-                        <div className={styles.upgradeDescription}>
-                            Увеличивает доход за интервал
+                    {passiveUpgrade && (
+                        <div className={`${styles.upgradeCard} ${styles.passiveUpgrade}`}>
+                            <div className={styles.upgradeIcon}>💰</div>
+                            <h3 className={styles.upgradeTitle}>{passiveUpgrade.name}</h3>
+                            <div className={styles.upgradeDescription}>
+                                {passiveUpgrade.description}
+                            </div>
+                            <div className={styles.upgradeStats}>
+                                <div>Уровень: {passiveUpgrade.currentLevel}</div>
+                                <div>Доход: +{passiveUpgrade.currentValue}/тик</div>
+                                <div>След.: +{passiveUpgrade.nextValue}/тик</div>
+                            </div>
+                            <div className={styles.upgradePrice}>
+                                {passiveUpgrade.currentPrice.toLocaleString()} очков
+                            </div>
+                            <button
+                                onClick={() => buyUpgrade(passiveUpgrade.id)}
+                                className={styles.buyButton}
+                                disabled={state.value < passiveUpgrade.currentPrice}
+                            >
+                                Купить
+                            </button>
                         </div>
-                        <div className={styles.upgradePrice}>200 очков</div>
-                        <button
-                            onClick={buyPassiveUpgrade}
-                            className={styles.buyButton}
-                        >
-                            Купить
-                        </button>
-                    </div>
+                    )}
 
                     {/* Улучшение скорости */}
-                    <div className={`${styles.upgradeCard} ${styles.speedUpgrade}`}>
-                        <div className={styles.upgradeIcon}>⏱️</div>
-                        <h3 className={styles.upgradeTitle}>Скорость -0.1с</h3>
-                        <div className={styles.upgradeDescription}>
-                            Уменьшает интервал пассивного дохода
+                    {speedUpgrade && (
+                        <div className={`${styles.upgradeCard} ${styles.speedUpgrade}`}>
+                            <div className={styles.upgradeIcon}>⏱️</div>
+                            <h3 className={styles.upgradeTitle}>{speedUpgrade.name}</h3>
+                            <div className={styles.upgradeDescription}>
+                                {speedUpgrade.description}
+                            </div>
+                            <div className={styles.upgradeStats}>
+                                <div>Уровень: {speedUpgrade.currentLevel}</div>
+                                <div>Интервал: {formattedPassiveInterval}с</div>
+                                <div>След.: {((state.passiveInterval - 100) / 1000).toFixed(1)}с</div>
+                            </div>
+                            <div className={styles.upgradePrice}>
+                                {speedUpgrade.currentPrice.toLocaleString()} очков
+                            </div>
+                            <button
+                                onClick={() => buyUpgrade(speedUpgrade.id)}
+                                className={styles.buyButton}
+                                disabled={state.value < speedUpgrade.currentPrice}
+                            >
+                                Купить
+                            </button>
                         </div>
-                        <div className={styles.upgradePrice}>300 очков</div>
-                        <button
-                            onClick={buySpeedUpgrade}
-                            className={styles.buyButton}
-                        >
-                            Купить
-                        </button>
-                    </div>
+                    )}
                 </div>
             )}
 
             {/* Подвал */}
             <div className={styles.footer}>
-                <div>Активных клиентов: {state.passiveInterval > 0 ? '2' : '1'}</div>
+                <div>Активных клиентов: 2</div>
                 {state.passiveIncome > 0
                     ? `✨ Пассивный доход активен: +${state.passiveIncome} каждые ${formattedPassiveInterval}с`
                     : '💤 Пассивный доход отключен (купите улучшение)'}

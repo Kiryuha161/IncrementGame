@@ -1,0 +1,83 @@
+﻿using Incremental.Data.Domain;
+using Incremental.Data.Enums;
+using Incremental.Data.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Incremental.Data
+{
+    public class DataInitializer : IDataInitializer
+    {
+        private readonly ProjectContext _context;
+        private readonly ILogger<DataInitializer> _logger;
+
+        public DataInitializer(ProjectContext context, ILogger<DataInitializer> logger)
+        {
+            _context = context;
+            _logger = logger;
+        }
+
+        public async Task InitializeAsync()
+        {
+            try
+            {
+                await EnsureUpgradesAsync();
+                _logger.LogInformation("✅ Данные инициализированы");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Ошибка инициализации данных");
+            }
+        }
+
+        private async Task EnsureUpgradesAsync()
+        {
+            if (await _context.Upgrades.AnyAsync())
+                return;
+
+            _logger.LogInformation("Добавление базовых улучшений...");
+
+            var upgrades = new[]
+            {
+                new Upgrade
+                {
+                    Name = "Сила клика",
+                    Description = "Увеличивает количество очков за клик",
+                    BaseValue = 1,
+                    ValueMultiplier = 1.5m,
+                    BasePrice = 50,
+                    PriceMultiplier = 1.5m,
+                    UpgradeType = UpgradeTypes.ClickPower
+                },
+                new Upgrade
+                {
+                    Name = "Пассивный доход",
+                    Description = "Добавляет пассивный доход каждые 5 секунд",
+                    BaseValue = 1,
+                    ValueMultiplier = 1.5m,
+                    BasePrice = 500,
+                    PriceMultiplier = 1.5m,
+                    UpgradeType = UpgradeTypes.PassiveIncome
+                },
+                new Upgrade
+                {
+                    Name = "Скорость",
+                    Description = "Уменьшает интервал пассивного дохода на 100мс",
+                    BaseValue = 100,
+                    ValueMultiplier = 1.0m,
+                    BasePrice = 1000,
+                    PriceMultiplier = 1.5m,
+                    UpgradeType = UpgradeTypes.PassiveInterval
+                }
+            };
+
+            await _context.Upgrades.AddRangeAsync(upgrades);
+            await _context.SaveChangesAsync();
+        }
+    }
+}

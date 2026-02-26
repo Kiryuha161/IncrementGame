@@ -3,6 +3,7 @@ using Incremental.Core.Managers.Interfaces;
 using Incremental.Core.ModelFactories.Factories;
 using Incremental.Core.ModelFactories.Interfaces;
 using Incremental.Data;
+using Incremental.Data.Interfaces;
 using IncrementGame.Server.Hubs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
@@ -12,7 +13,7 @@ namespace IncrementGame.Server
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             Log.Logger = new LoggerConfiguration()
                 .ReadFrom.Configuration(new ConfigurationBuilder()
@@ -67,6 +68,9 @@ namespace IncrementGame.Server
 
                 builder.Services.AddScoped<IPointManager, SingleGamePointManager>();
                 builder.Services.AddScoped<IPointFactory, PointFactory>();
+                builder.Services.AddScoped<IUpgradeManager, UpgradeManager>();
+                builder.Services.AddScoped<IGameCalculationManager, GameCalculationManager>();
+                builder.Services.AddScoped<IDataInitializer, DataInitializer>();
                 builder.Services.AddScoped<SingleGameCacheManager>();
 
                 var app = builder.Build();
@@ -103,6 +107,12 @@ namespace IncrementGame.Server
                     {
                         Log.Error(ex, "Ошибка при применении миграций");
                     }
+                }
+
+                using (var scope = app.Services.CreateScope())
+                {
+                    var initializer = scope.ServiceProvider.GetRequiredService<IDataInitializer>();
+                    await initializer.InitializeAsync();  
                 }
 
                 app.UseHttpsRedirection();

@@ -13,5 +13,7 @@ namespace Incremental.Data
         public ProjectContext(DbContextOptions<ProjectContext> options) : base(options) { }
 
         public DbSet<Point> Points { get; set; }
+        public DbSet<Upgrade> Upgrades { get; set; }
+        public DbSet<PlayerUpgrade> PlayerUpgrades { get; set; }
     }
 }
