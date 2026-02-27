@@ -1,4 +1,4 @@
-﻿using Incremental.Core.Managers.Interfaces;
+﻿using Incremental.Core.Services.Interfaces;
 using Incremental.Data.Domain;
 using Incremental.Data.Enums;
 using System;
@@ -7,9 +7,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Incremental.Core.Managers
+namespace Incremental.Core.Services
 {
-    public class GameCalculationManager : IGameCalculationManager
+    public class GameCalculationService : IGameCalculationService
     {
         /// <summary>
         /// Базовая сила клика, если нет улучшений

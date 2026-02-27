@@ -5,9 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Incremental.Core.Managers.Interfaces
+namespace Incremental.Core.Services.Interfaces
 {
-    public interface IGameCalculationManager
+    public interface IGameCalculationService
     {
         long CalculateTotalClickPower(Point point);
         long CalculateTotalPassiveIncome(Point point);

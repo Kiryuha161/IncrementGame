@@ -1,6 +1,6 @@
 ﻿using Incremental.Core.DTOs.Common;
-using Incremental.Core.Managers.Interfaces;
 using Incremental.Core.ModelFactories.Interfaces;
+using Incremental.Core.Services.Interfaces;
 using Incremental.Data.Domain;
 using System;
 using System.Collections.Generic;
@@ -12,9 +12,9 @@ namespace Incremental.Core.ModelFactories.Factories
 {
     public class PointFactory : IPointFactory
     {
-        private readonly IGameCalculationManager _calculations;
+        private readonly IGameCalculationService _calculations;
 
-        public PointFactory(IGameCalculationManager calculations)
+        public PointFactory(IGameCalculationService calculations)
         {
             _calculations = calculations;
         }

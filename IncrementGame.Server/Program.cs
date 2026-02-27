@@ -2,6 +2,8 @@ using Incremental.Core.Managers;
 using Incremental.Core.Managers.Interfaces;
 using Incremental.Core.ModelFactories.Factories;
 using Incremental.Core.ModelFactories.Interfaces;
+using Incremental.Core.Services;
+using Incremental.Core.Services.Interfaces;
 using Incremental.Data;
 using Incremental.Data.Interfaces;
 using IncrementGame.Server.Hubs;
@@ -69,7 +71,7 @@ namespace IncrementGame.Server
                 builder.Services.AddScoped<IPointManager, SingleGamePointManager>();
                 builder.Services.AddScoped<IPointFactory, PointFactory>();
                 builder.Services.AddScoped<IUpgradeManager, UpgradeManager>();
-                builder.Services.AddScoped<IGameCalculationManager, GameCalculationManager>();
+                builder.Services.AddScoped<IGameCalculationService, GameCalculationService>();
                 builder.Services.AddScoped<IDataInitializer, DataInitializer>();
                 builder.Services.AddScoped<SingleGameCacheManager>();
 

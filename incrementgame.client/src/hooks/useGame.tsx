@@ -15,7 +15,7 @@ export function useGame() {
     useEffect(() => {
         if (!state || state.passiveInterval <= 0 || state.passiveIncome <= 0) return;
 
-        // 👇 НЕ запускаем пассивный доход, если есть несохраненные клики
+        // НЕ запускаем пассивный доход, если есть несохраненные клики
         if (pendingClicks > 0) {
             console.log('⏳ Ожидание сохранения... Пассивный доход пропущен');
             return;

@@ -1,5 +1,6 @@
 ﻿using Incremental.Core.DTOs.Common;
 using Incremental.Core.Managers.Interfaces;
+using Incremental.Core.Services.Interfaces;
 using Incremental.Data;
 using Incremental.Data.Domain;
 using Incremental.Data.Enums;
@@ -15,11 +16,11 @@ namespace Incremental.Core.Managers
     public class UpgradeManager : IUpgradeManager
     {
         private readonly ProjectContext _context;
-        private readonly IGameCalculationManager _calculations;
+        private readonly IGameCalculationService _calculations;
 
         public UpgradeManager(
             ProjectContext context,
-            IGameCalculationManager calculations)
+            IGameCalculationService calculations)
         {
             _context = context;
             _calculations = calculations;
