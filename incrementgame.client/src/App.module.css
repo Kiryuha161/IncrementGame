@@ -187,3 +187,192 @@
     color: #999;
     border-top: 1px solid #eee;
 }
+
+.errorContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    padding: 20px;
+    background-color: #fff3f3;
+    border-radius: 12px;
+    border: 1px solid #ffcdd2;
+    margin: 20px;
+}
+
+.errorIcon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    animation: shake 0.5s ease-in-out;
+}
+
+.errorTitle {
+    font-size: 20px;
+    font-weight: bold;
+    color: #d32f2f;
+    margin-bottom: 8px;
+}
+
+.errorMessage {
+    font-size: 16px;
+    color: #666;
+    text-align: center;
+    margin-bottom: 20px;
+    max-width: 400px;
+    word-break: break-word;
+}
+
+.errorRetryButton {
+    padding: 10px 24px;
+    background-color: #d32f2f;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+    .errorRetryButton:hover {
+        background-color: #b71c1c;
+    }
+
+    .errorRetryButton:active {
+        transform: scale(0.95);
+    }
+
+@keyframes shake {
+    0%, 100% {
+        transform: translateX(0);
+    }
+
+    10%, 30%, 50%, 70%, 90% {
+        transform: translateX(-5px);
+    }
+
+    20%, 40%, 60%, 80% {
+        transform: translateX(5px);
+    }
+}
+
+/* Всплывающий тост для ошибок */
+.errorToast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    min-width: 300px;
+    max-width: 400px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    border-left: 4px solid #d32f2f;
+    padding: 16px;
+    z-index: 1000;
+    animation: slideIn 0.3s ease-out;
+}
+
+.errorToastHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.errorToastTitle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: bold;
+    color: #d32f2f;
+}
+
+.errorToastClose {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #999;
+    padding: 0 4px;
+}
+
+    .errorToastClose:hover {
+        color: #666;
+    }
+
+.errorToastMessage {
+    color: #666;
+    font-size: 14px;
+    word-break: break-word;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.buyButton {
+    padding: 8px 16px;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 100%;
+    transition: opacity 0.3s, background-color 0.3s;
+}
+
+    /* Стиль для отключенной кнопки */
+    .buyButton:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        pointer-events: none;
+        background-color: #cccccc !important; /* Переопределяем цвет на серый */
+    }
+
+/* Типы улучшений - их фоновые цвета */
+.clickUpgrade {
+    background-color: #fff3e0;
+    border: 1px solid #ffb74d;
+}
+
+    .clickUpgrade .buyButton {
+        background-color: #ff9800;
+    }
+
+        .clickUpgrade .buyButton:disabled {
+            background-color: #cccccc !important;
+        }
+
+.passiveUpgrade {
+    background-color: #e8f5e8;
+    border: 1px solid #81c784;
+}
+
+    .passiveUpgrade .buyButton {
+        background-color: #4caf50;
+    }
+
+        .passiveUpgrade .buyButton:disabled {
+            background-color: #cccccc !important;
+        }
+
+.speedUpgrade {
+    background-color: #e3f2fd;
+    border: 1px solid #64b5f6;
+}
+
+    .speedUpgrade .buyButton {
+        background-color: #2196f3;
+    }
+
+        .speedUpgrade .buyButton:disabled {
+            background-color: #cccccc !important;
+        }

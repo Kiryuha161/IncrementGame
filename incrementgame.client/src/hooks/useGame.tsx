@@ -63,6 +63,12 @@ export function useGame() {
 
     // Покупка улучшения
     const handleBuyUpgrade = useCallback(async (upgradeId: number) => {
+        if (!state) return;
+
+        const upgrade = upgrades.find(u => u.id === upgradeId);
+        if (!upgrade) return;
+
+        setLoading(true);
         try {
             const result = await buyUpgrade(upgradeId);
 
@@ -73,14 +79,15 @@ export function useGame() {
                         ...u,
                         currentLevel: u.currentLevel + 1,
                         currentValue: result.currentValue,
-                        currentPrice: result.nextPrice // Цена следующего уровня
+                        currentPrice: result.nextPrice
                     }
                     : u
             ));
 
-            // Обновляем состояние игры (очки должны были измениться)
+            // Обновляем состояние игры 
             const newState = await getGameState();
             setState(newState);
+            setError(null);
 
             // Обновляем прогресс игрока
             setPlayerUpgrades(prev => {
@@ -103,10 +110,13 @@ export function useGame() {
                 }
             });
 
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Ошибка при покупке');
+        } catch (err: any) {
+            // Только серверная ошибка
+            setError(err.message || 'Ошибка при покупке');
+        } finally {
+            setLoading(false);
         }
-    }, []);
+    }, [state, upgrades]);
 
     const syncWithServer = useCallback(async () => {
         if (pendingClicks === 0 || !state) return;
@@ -135,7 +145,7 @@ export function useGame() {
             if (pendingClicks > 0) {
                 syncWithServer();
             }
-        }, 3000);
+        }, 500);
 
         return () => clearTimeout(timer);
     }, [pendingClicks, syncWithServer]);
