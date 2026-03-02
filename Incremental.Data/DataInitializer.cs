@@ -37,47 +37,64 @@ namespace Incremental.Data
 
         private async Task EnsureUpgradesAsync()
         {
-            if (await _context.Upgrades.AnyAsync())
-                return;
-
             _logger.LogInformation("Добавление базовых улучшений...");
-
-            var upgrades = new[]
+            await EnsureUpgradeAsync("Сила клика", new Upgrade
             {
-                new Upgrade
-                {
-                    Name = "Сила клика",
-                    Description = "Увеличивает количество очков за клик",
-                    BaseValue = 1,
-                    ValueMultiplier = 1.5m,
-                    BasePrice = 50,
-                    PriceMultiplier = 1.5m,
-                    UpgradeType = UpgradeTypes.ClickPower
-                },
-                new Upgrade
-                {
-                    Name = "Пассивный доход",
-                    Description = "Добавляет пассивный доход каждые 5 секунд",
-                    BaseValue = 1,
-                    ValueMultiplier = 1.5m,
-                    BasePrice = 500,
-                    PriceMultiplier = 1.5m,
-                    UpgradeType = UpgradeTypes.PassiveIncome
-                },
-                new Upgrade
-                {
-                    Name = "Скорость",
-                    Description = "Уменьшает интервал пассивного дохода на 100мс",
-                    BaseValue = 100,
-                    ValueMultiplier = 1.0m,
-                    BasePrice = 1000,
-                    PriceMultiplier = 1.5m,
-                    UpgradeType = UpgradeTypes.PassiveInterval
-                }
-            };
+                Name = "Сила клика",
+                Description = "Увеличивает количество очков за клик",
+                BaseValue = 1,
+                ValueMultiplier = 1.5m,
+                BasePrice = 50,
+                PriceMultiplier = 1.5m,
+                UpgradeType = UpgradeTypes.ClickPower
+            });
 
-            await _context.Upgrades.AddRangeAsync(upgrades);
+            await EnsureUpgradeAsync("Пассивный доход", new Upgrade
+            {
+                Name = "Пассивный доход",
+                Description = "Добавляет пассивный доход каждые 5 секунд",
+                BaseValue = 1,
+                ValueMultiplier = 1.5m,
+                BasePrice = 500,
+                PriceMultiplier = 1.5m,
+                UpgradeType = UpgradeTypes.PassiveIncome
+            });
+
+            await EnsureUpgradeAsync("Скорость", new Upgrade
+            {
+                Name = "Скорость",
+                Description = "Уменьшает интервал пассивного дохода на 100мс",
+                BaseValue = 100,
+                ValueMultiplier = 1.0m,
+                BasePrice = 1000,
+                PriceMultiplier = 1.5m,
+                UpgradeType = UpgradeTypes.PassiveInterval
+            });
+
+            await EnsureUpgradeAsync("Оптовик", new Upgrade
+            {
+                Name = "Оптовик",
+                Description = "Уменьшает стоимость всех улучшений на 5% за уровень",
+                BaseValue = 5,
+                ValueMultiplier = 1.0m,
+                BasePrice = 2000,
+                PriceMultiplier = 2.0m,
+                UpgradeType = UpgradeTypes.DiscountAll
+            });
+
+            // await _context.Upgrades.AddRangeAsync(upgrades);
             await _context.SaveChangesAsync();
+        }
+
+        private async Task EnsureUpgradeAsync(string name, Upgrade upgrade)
+        {
+            var exists = await _context.Upgrades.AnyAsync(u => u.Name == name);
+            if (!exists)
+            {
+                await _context.Upgrades.AddAsync(upgrade);
+                await _context.SaveChangesAsync();
+                _logger.LogInformation($"✅ Добавлено улучшение: {name}");
+            }
         }
     }
 }

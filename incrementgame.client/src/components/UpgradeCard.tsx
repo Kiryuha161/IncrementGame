@@ -18,12 +18,15 @@ export function UpgradeCard({
 }: UpgradeCardProps) {
     const variant =
         upgrade.upgradeType === 'ClickPower' ? 'click' :
-            upgrade.upgradeType === 'PassiveIncome' ? 'passive' : 'speed';
+            upgrade.upgradeType === 'PassiveIncome' ? 'passive' :
+                upgrade.upgradeType === 'PassiveInterval' ? 'speed' :
+                    'discount'; 
 
     const variantClass =
         variant === 'click' ? styles.clickUpgrade :
             variant === 'passive' ? styles.passiveUpgrade :
-                styles.speedUpgrade;
+                variant === 'speed' ? styles.speedUpgrade :
+                    styles.discountUpgrade; 
 
     const isDisabled = loading || userPoints < upgrade.currentPrice;
     const neededPoints = upgrade.currentPrice - userPoints;
@@ -32,6 +35,9 @@ export function UpgradeCard({
     const formatValue = (value: number) => {
         if (upgrade.upgradeType === 'PassiveInterval') {
             return `${(value / 1000).toFixed(1)}с`;
+        }
+        if (upgrade.upgradeType === 'DiscountAll') {
+            return `${value}%`; //  Для скидки показываем проценты
         }
         return `+${value}`;
     };
@@ -51,8 +57,24 @@ export function UpgradeCard({
                 <div>Следующее: {formatValue(upgrade.nextValue)}</div>
                 {additionalStats}
             </div>
-            <div className={styles.upgradePrice}>
-                {upgrade.currentPrice.toLocaleString()} очков
+            <div className={styles.priceContainer}>
+                {upgrade.originalPrice && upgrade.originalPrice !== upgrade.currentPrice ? (
+                    <>
+                        <span className={styles.oldPrice}>
+                            {upgrade.originalPrice.toLocaleString()}
+                        </span>
+                        <span className={styles.newPrice}>
+                            {upgrade.currentPrice.toLocaleString()} очков
+                        </span>
+                        <span className={styles.discountBadge}>
+                            -{Math.round((1 - upgrade.currentPrice / upgrade.originalPrice) * 100)}%
+                        </span>
+                    </>
+                ) : (
+                    <div className={styles.upgradePrice}>
+                        {upgrade.currentPrice.toLocaleString()} очков
+                    </div>
+                )}
             </div>
             <div className={styles.buttonWrapper}
                 title={isDisabled && neededPoints > 0 ? `Нужно еще ${neededPoints} очков` : 'Купить улучшение'}>

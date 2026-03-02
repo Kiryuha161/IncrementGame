@@ -376,3 +376,51 @@
         .speedUpgrade .buyButton:disabled {
             background-color: #cccccc !important;
         }
+
+.discountUpgrade {
+    background-color: #f3e5f5;
+    border: 1px solid #ba68c8;
+}
+
+    .discountUpgrade .buyButton {
+        background-color: #9c27b0;
+    }
+
+        .discountUpgrade .buyButton:disabled {
+            background-color: #cccccc !important;
+        }
+        
+
+/*Цены*/
+.discountUpgrade {
+    border-left: 4px solid #9c27b0; /* Фиолетовый для скидки */
+}
+
+.priceContainer {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 8px 0;
+}
+
+.oldPrice {
+    text-decoration: line-through;
+    color: #999;
+    font-size: 0.9rem;
+}
+
+.newPrice {
+    color: #4caf50;
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.discountBadge {
+    background: #4caf50;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: bold;
+}

@@ -48,6 +48,7 @@ function App() {
     const clickUpgrade = upgrades.find(u => u.upgradeType === 'ClickPower');
     const passiveUpgrade = upgrades.find(u => u.upgradeType === 'PassiveIncome');
     const speedUpgrade = upgrades.find(u => u.upgradeType === 'PassiveInterval');
+    const discountUpgrade = upgrades.find(u => u.upgradeType === 'DiscountAll'); 
 
     return (
         <div className={styles.container}>
@@ -136,6 +137,20 @@ function App() {
                                     ⏱️ Текущий интервал: {formattedPassiveInterval}с
                                 </div>
                             }
+                        />
+                    )}
+
+                    {discountUpgrade && ( 
+                        <UpgradeCard
+                            upgrade={discountUpgrade}
+                            userPoints={state.value}
+                            loading={loading}
+                            onBuy={(id) => {
+                                const upgrade = upgrades.find(u => u.id === id);
+                                if (upgrade) {
+                                    buyUpgrade(id, upgrade.currentPrice);
+                                }
+                            }}
                         />
                     )}
                 </div>

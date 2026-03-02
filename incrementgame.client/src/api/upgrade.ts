@@ -4,6 +4,7 @@ export interface UpgradeEffects {
     clickPower: number;
     passiveIncome: number;
     passiveInterval: number;
+    discountPercent?: number;
 }
 
 export interface Upgrade {
@@ -17,6 +18,7 @@ export interface Upgrade {
     maxLevel: number;
     upgradeType: string;
     icon: string;
+    originalPrice?: number;
 }
 
 export interface PlayerUpgrade {

@@ -21,5 +21,6 @@ namespace Incremental.Core.DTOs.Common
         public int MaxLevel { get; set; }
         public string UpgradeType { get; set; }
         public string Icon { get; set; } // Для UI
+        public long? OriginalPrice { get; set; }
     }
 }

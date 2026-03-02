@@ -11,5 +11,6 @@ namespace Incremental.Core.DTOs.Common
         public long ClickPower { get; set; }
         public long PassiveIncome { get; set; }
         public int PassiveInterval { get; set; }
+        public decimal DiscountPercent { get; set; }
     }
 }

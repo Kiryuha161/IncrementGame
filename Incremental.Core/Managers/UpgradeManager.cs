@@ -39,13 +39,19 @@ namespace Incremental.Core.Managers
                 .Where(pu => pu.Upgrade.UpgradeType == UpgradeTypes.PassiveInterval)
                 .Sum(pu => pu.CurrentValue);
 
+            var discountBonus = playerUpgrades
+               .Where(pu => pu.Upgrade.UpgradeType == UpgradeTypes.DiscountAll)
+               .Sum(pu => pu.CurrentValue);
+
             var passiveInterval = Math.Max(1000, 5000 - (int)intervalBonus);
+            var discountPercent = Math.Min(0.5m, discountBonus / 100m);
 
             return new UpgradeEffectsDto
             {
                 ClickPower = clickPower > 0 ? clickPower : 1,
                 PassiveIncome = passiveIncome,
-                PassiveInterval = passiveInterval
+                PassiveInterval = passiveInterval,
+                DiscountPercent = discountPercent
             };
         }
 
@@ -56,10 +62,15 @@ namespace Incremental.Core.Managers
                 .Where(pu => pu.PointsId == pointsId)
                 .ToDictionaryAsync(pu => pu.UpgradeId, pu => pu);
 
+            var currentEffects = await GetCurrentEffectsAsync(pointsId);
+
             var result = allUpgrades.Select(u =>
             {
                 playerUpgrades.TryGetValue(u.Id, out var playerUpgrade);
                 var currentLevel = playerUpgrade?.Level ?? 0;
+
+                long basePrice = playerUpgrade?.NextPrice ?? u.BasePrice;
+                long finalPrice = (long)(basePrice * (1 - currentEffects.DiscountPercent));
 
                 return new UpgradeDto
                 {
@@ -72,7 +83,8 @@ namespace Incremental.Core.Managers
                     MaxLevel = int.MaxValue,
                     CurrentValue = playerUpgrade?.CurrentValue ?? 0,
                     NextValue = u.BaseValue * (currentLevel + 1),
-                    CurrentPrice = playerUpgrade?.NextPrice ?? u.BasePrice
+                    CurrentPrice = finalPrice,
+                    OriginalPrice = basePrice // для отображения старой цены
                 };
             }).ToList();
 
@@ -110,17 +122,23 @@ namespace Incremental.Core.Managers
             var playerUpgrade = await _context.PlayerUpgrades
                 .FirstOrDefaultAsync(pu => pu.PointsId == pointsId && pu.UpgradeId == upgradeId);
 
-            int currentLevel = playerUpgrade?.Level ?? 0;
-            long price = playerUpgrade?.NextPrice ?? upgrade.BasePrice;
+            // Получаем текущие эффекты (для скидки)
+            var currentEffects = await GetCurrentEffectsAsync(pointsId);
+
+            // Базовая цена
+            long basePrice = playerUpgrade?.NextPrice ?? upgrade.BasePrice;
+
+            // Применяем скидку к цене
+            long finalPrice = (long)(basePrice * (1 - currentEffects.DiscountPercent));
 
             var point = await _context.Points.FindAsync(pointsId);
             if (point == null)
                 throw new Exception("Игрок не найден");
 
-            if (point.Amount < price)
+            if (point.Amount < finalPrice)
                 throw new Exception("Недостаточно очков");
 
-            point.Amount -= price;
+            point.Amount -= finalPrice;
 
             if (playerUpgrade == null)
             {
