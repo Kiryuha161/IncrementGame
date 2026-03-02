@@ -1,8 +1,5 @@
 ﻿using Incremental.Core.DTOs.Common;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Incremental.Core.Managers.Interfaces
@@ -10,28 +7,50 @@ namespace Incremental.Core.Managers.Interfaces
     public interface IUpgradeManager
     {
         /// <summary>
-        /// Получить все доступные улучшения для игрока
+        /// Получает текущие эффекты от всех улучшений игрока
         /// </summary>
-        Task<ApiResult<List<UpgradeDto>>> GetAvailableUpgradesAsync(int pointsId);
+        /// <param name="pointsId">Идентификатор игрока</param>
+        /// <returns>Dto с силой клика, пассивным доходом и интервалом</returns>
+        Task<UpgradeEffectsDto> GetCurrentEffectsAsync(int pointsId);
 
         /// <summary>
-        /// Получить текущий прогресс улучшений игрока
+        /// Получает список всех доступных улучшений с текущим прогрессом игрока
         /// </summary>
-        Task<ApiResult<List<PlayerUpgradeDto>>> GetPlayerUpgradesAsync(int pointsId);
+        /// <param name="pointsId">Идентификатор игрока</param>
+        /// <returns>Список улучшений с текущим уровнем, ценой и значениями</returns>
+        Task<List<UpgradeDto>> GetAvailableUpgradesAsync(int pointsId);
 
         /// <summary>
-        /// Купить улучшение (повысить уровень)
+        /// Получает список купленных улучшений игрока
         /// </summary>
-        Task<ApiResult<PlayerUpgradeDto>> BuyUpgradeAsync(int pointsId, int upgradeId);
+        /// <param name="pointsId">Идентификатор игрока</param>
+        /// <returns>Список улучшений с текущим уровнем и характеристиками</returns>
+        Task<List<PlayerUpgradeDto>> GetPlayerUpgradesAsync(int pointsId);
 
         /// <summary>
-        /// Проверить, может ли игрок купить улучшение
+        /// Покупает улучшение для игрока
         /// </summary>
-        Task<ApiResult<bool>> CanAffordUpgradeAsync(int pointsId, int upgradeId);
+        /// <param name="pointsId">Идентификатор игрока</param>
+        /// <param name="upgradeId">Идентификатор улучшения</param>
+        /// <returns>Обновленные данные о купленном улучшении</returns>
+        /// <exception cref="Exception">Если игрок не найден, улучшение не найдено или недостаточно очков</exception>
+        Task<PlayerUpgradeDto> BuyUpgradeAsync(int pointsId, int upgradeId);
 
         /// <summary>
-        /// Получить стоимость следующего уровня улучшения
+        /// Проверяет, может ли игрок купить улучшение
         /// </summary>
-        Task<ApiResult<long>> GetNextUpgradePriceAsync(int pointsId, int upgradeId);
+        /// <param name="pointsId">Идентификатор игрока</param>
+        /// <param name="upgradeId">Идентификатор улучшения</param>
+        /// <returns>True если достаточно очков, иначе false</returns>
+        Task<bool> CanAffordUpgradeAsync(int pointsId, int upgradeId);
+
+        /// <summary>
+        /// Получает цену следующего уровня улучшения
+        /// </summary>
+        /// <param name="pointsId">Идентификатор игрока</param>
+        /// <param name="upgradeId">Идентификатор улучшения</param>
+        /// <returns>Цена следующего уровня</returns>
+        /// <exception cref="Exception">Если улучшение не найдено</exception>
+        Task<long> GetNextUpgradePriceAsync(int pointsId, int upgradeId);
     }
 }

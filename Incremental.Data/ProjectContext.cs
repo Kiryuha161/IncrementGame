@@ -15,5 +15,19 @@ namespace Incremental.Data
         public DbSet<Point> Points { get; set; }
         public DbSet<Upgrade> Upgrades { get; set; }
         public DbSet<PlayerUpgrade> PlayerUpgrades { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<PlayerUpgrade>()
+                .HasIndex(pu => pu.PointsId)
+                .HasDatabaseName("IX_PlayerUpgrades_PointsId");
+
+            modelBuilder.Entity<PlayerUpgrade>()
+                .HasIndex(pu => pu.UpgradeId)
+                .HasDatabaseName("IX_PlayerUpgrades_UpgradeId");
+        }
     }
 }
+

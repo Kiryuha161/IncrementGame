@@ -1,32 +1,24 @@
 import { api } from './client';
 
-export interface GameState {
-    value: number;
-    clickPower: number;
-    passiveIncome: number;      
-    passiveInterval: number;
-}
-
-// Простые функции для каждого эндпоинта
 export async function getGameState() {
-    const response = await api.get<GameState>('/points');
+    const response = await api.get<number>('/points');
     if (!response.success) throw new Error(response.message);
     return response.data!;
 }
 
-export async function clickGame() {
-    const response = await api.post<GameState>('/points/click');
+export async function clickGame(clickPower: number) {
+    const response = await api.post<number>('/points/click', { clickPower });
     if (!response.success) throw new Error(response.message);
     return response.data!;
 }
 
-export async function saveGameState(state: GameState) {
-    const response = await api.post('/points/state', state);
+export async function saveGameState(amount: number) {
+    const response = await api.post('/points/state', amount);
     if (!response.success) throw new Error(response.message);
 }
 
 export async function processPassiveIncome() {
-    const response = await api.post<GameState>('/points/passive');
+    const response = await api.post<number>('/points/passive');
     if (!response.success) throw new Error(response.message);
     return response.data!;
 }

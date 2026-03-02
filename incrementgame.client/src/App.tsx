@@ -1,6 +1,5 @@
 ﻿import './App.css';
 import { useGame } from './hooks/useGame';
-import { startSignalR, stopSignalR } from './api/signalR';
 import { useEffect, useState } from 'react';
 import styles from './App.module.css';
 import { ErrorToast } from './components/ErrorToast';
@@ -12,34 +11,27 @@ import { SyncStatus } from './components/SyncStatus';
 
 function App() {
     const {
-        state, setState, upgrades, loading, error, syncStatus,
-        setSyncStatus, click, buyUpgrade, refresh
+        state,
+        upgrades,
+        activeClients,
+        loading,
+        error,
+        syncStatus,
+        click,
+        buyUpgrade,
+        refresh
     } = useGame();
+
     const [showUpgrades, setShowUpgrades] = useState(false);
     const [showErrorToast, setShowErrorToast] = useState(false);
 
     useEffect(() => {
         if (error) {
             setShowErrorToast(true);
+            const timer = setTimeout(() => setShowErrorToast(false), 5000);
+            return () => clearTimeout(timer);
         }
     }, [error]);
-
-    useEffect(() => {
-        if (!state) return;
-        startSignalR(
-            (updatedState) => {
-                setState(updatedState);
-                setSyncStatus('synced');
-            },
-            (count) => {
-                console.log('Активных клиентов:', count);
-            }
-        );
-
-        return () => {
-            stopSignalR();
-        };
-    }, []);
 
     if (loading && !state) {
         return <LoadingScreen />;
@@ -53,7 +45,6 @@ function App() {
 
     const formattedPassiveInterval = (state.passiveInterval / 1000).toFixed(1);
 
-    // Группируем улучшения по типу (просто для порядка, но можно рендерить все подряд)
     const clickUpgrade = upgrades.find(u => u.upgradeType === 'ClickPower');
     const passiveUpgrade = upgrades.find(u => u.upgradeType === 'PassiveIncome');
     const speedUpgrade = upgrades.find(u => u.upgradeType === 'PassiveInterval');
@@ -76,7 +67,7 @@ function App() {
                     <StatsCard label="Пассивный доход" value={state.passiveIncome || 0} icon="💰" />
                     <StatsCard
                         label="Интервал"
-                        value={state.passiveInterval ? `${formattedPassiveInterval}с` : 0}
+                        value={state.passiveInterval ? `${formattedPassiveInterval}с` : '0с'}
                         icon="⏱️"
                     />
                 </div>
@@ -106,7 +97,12 @@ function App() {
                             upgrade={clickUpgrade}
                             userPoints={state.value}
                             loading={loading}
-                            onBuy={buyUpgrade}
+                            onBuy={(id) => {
+                                const upgrade = upgrades.find(u => u.id === id);
+                                if (upgrade) {
+                                    buyUpgrade(id, upgrade.currentPrice);
+                                }
+                            }}
                         />
                     )}
 
@@ -115,7 +111,12 @@ function App() {
                             upgrade={passiveUpgrade}
                             userPoints={state.value}
                             loading={loading}
-                            onBuy={buyUpgrade}
+                            onBuy={(id) => {
+                                const upgrade = upgrades.find(u => u.id === id);
+                                if (upgrade) {
+                                    buyUpgrade(id, upgrade.currentPrice);
+                                }
+                            }}
                         />
                     )}
 
@@ -124,9 +125,16 @@ function App() {
                             upgrade={speedUpgrade}
                             userPoints={state.value}
                             loading={loading}
-                            onBuy={buyUpgrade}
+                            onBuy={(id) => {
+                                const upgrade = upgrades.find(u => u.id === id);
+                                if (upgrade) {
+                                    buyUpgrade(id, upgrade.currentPrice);
+                                }
+                            }}
                             additionalStats={
-                                <div>Интервал: {formattedPassiveInterval}с</div>
+                                <div className={styles.upgradeStat}>
+                                    ⏱️ Текущий интервал: {formattedPassiveInterval}с
+                                </div>
                             }
                         />
                     )}
@@ -134,7 +142,7 @@ function App() {
             )}
 
             <div className={styles.footer}>
-                <div>Активных клиентов: 2</div>
+                <div>👥 Активных клиентов: {activeClients}</div>
                 {state.passiveIncome > 0
                     ? `✨ Пассивный доход активен: +${state.passiveIncome} каждые ${formattedPassiveInterval}с`
                     : '💤 Пассивный доход отключен (купите улучшение)'}

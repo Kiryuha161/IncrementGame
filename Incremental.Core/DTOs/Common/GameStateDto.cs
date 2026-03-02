@@ -9,7 +9,7 @@ namespace Incremental.Core.DTOs.Common
     public class GameStateDto
     {
         /// <summary>
-        /// Количество очков, которые будут прибавляться к общему числу очков при клике
+        /// Количество очков
         /// </summary>
         public long Value { get; set; }
         

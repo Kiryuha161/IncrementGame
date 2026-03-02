@@ -1,10 +1,9 @@
 ﻿import * as signalR from '@microsoft/signalr';
-import type { GameState } from './points';
 
 let connection: signalR.HubConnection | null = null;
 
 export const startSignalR = (
-    onStateUpdate: (state: GameState) => void,
+    onAmountUpdate: (amount: number) => void,
     onClientCountUpdate: (count: number) => void
 ) => {
     if (connection) {
@@ -14,17 +13,17 @@ export const startSignalR = (
 
     connection = new signalR.HubConnectionBuilder()
         .withUrl('https://localhost:7261/gameHub')
-        .withAutomaticReconnect([0, 2000, 5000, 10000, 30000]) // 👈 Явные интервалы
+        .withAutomaticReconnect([0, 2000, 5000, 10000, 30000])
         .configureLogging(signalR.LogLevel.Information)
         .build();
 
-    connection.on('ReceiveGameStateUpdate', (state: GameState) => {
-        console.log('🔥 SignalR принят:', state);
-        onStateUpdate(state);
+    connection.on('ReceiveAmountUpdate', (amount: number) => {
+        console.log('💰 SignalR принял сумму:', amount);
+        onAmountUpdate(amount);
     });
 
     connection.on('UpdateClientCount', (count: number) => {
-        console.log('👥 Активные кл:', count);
+        console.log('👥 Активные клиенты:', count);
         onClientCountUpdate(count);
     });
 

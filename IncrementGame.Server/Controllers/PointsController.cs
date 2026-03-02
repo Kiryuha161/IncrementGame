@@ -2,8 +2,12 @@
 using Microsoft.AspNetCore.SignalR;
 using Incremental.Core.Managers.Interfaces;
 using Incremental.Core.DTOs.Common;
+using Incremental.Core.DTOs.Request;
 using IncrementGame.Server.Hubs;
 using Serilog;
+using System;
+using System.Threading.Tasks;
+using Incremental.Core.Managers;
 
 namespace IncrementGame.Server.Controllers
 {
@@ -16,98 +20,107 @@ namespace IncrementGame.Server.Controllers
     {
         private readonly IPointManager _pointManager;
         private readonly IHubContext<GameHub> _hubContext;
+        private readonly IUpgradeManager _upgradeManager;
 
         public PointsController(
             IPointManager pointManager,
-            IHubContext<GameHub> hubContext)
+            IHubContext<GameHub> hubContext,
+            IUpgradeManager upgradeManager)
         {
             _pointManager = pointManager;
             _hubContext = hubContext;
+            _upgradeManager = upgradeManager;
         }
 
         /// <summary>
-        /// Получить текущее состояние игры (количество очков, уровень и т.д.).
+        /// Получает текущее количество очков
         /// </summary>
-        /// <returns>Объект GameStateDto с текущими показателями.</returns>
+        /// <returns>Количество очков</returns>
         [HttpGet]
-        public async Task<ActionResult<ApiResult>> Get()
+        public async Task<ActionResult<ApiResult<long>>> Get()
         {
             try
             {
-                var dto = await _pointManager.GetStateAsync();
-                return Ok(ApiResult.Ok(dto, "Состояние получено"));
+                var amount = await _pointManager.GetCurrentAmountAsync();
+                return Ok(ApiResult<long>.Ok(amount, "Количество очков получено"));
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Ошибка при получении состояния");
-                return StatusCode(500, ApiResult.Fail("Ошибка сервера"));
+                Log.Error(ex, "Ошибка при получении количества очков");
+                return StatusCode(500, ApiResult<long>.Fail("Ошибка сервера"));
             }
         }
 
         /// <summary>
-        /// Выполнить клик (заработать очки).
-        /// Увеличивает счетчик и оповещает всех подключенных клиентов через SignalR.
+        /// Выполняет клик с указанной силой
         /// </summary>
-        /// <returns>Обновленное состояние игры после клика.</returns>
+        /// <param name="request">Объект с силой клика</param>
+        /// <returns>Новое количество очков</returns>
         [HttpPost("click")]
-        public async Task<ActionResult<ApiResult>> Click()
+        public async Task<ActionResult<ApiResult<long>>> Click([FromBody] ClickRequest request)
         {
             try
             {
-                var dto = await _pointManager.ClickAsync();
-                await _hubContext.Clients.All.SendAsync("ReceiveGameStateUpdate", dto);
+                var newAmount = await _pointManager.ClickAsync(request.ClickPower);
 
-                return Ok(ApiResult.Ok(dto, "Клик выполнен"));
+                await _hubContext.Clients.All.SendAsync("ReceiveAmountUpdate", newAmount);
+
+                return Ok(ApiResult<long>.Ok(newAmount, "Клик выполнен"));
             }
             catch (Exception ex)
             {
                 Log.Error(ex, "Ошибка при клике");
-                return StatusCode(500, ApiResult.Fail("Ошибка сервера"));
+                return StatusCode(500, ApiResult<long>.Fail("Ошибка сервера"));
             }
         }
 
         /// <summary>
-        /// Сохранить состояние игры (например, при покупке улучшений или выходе).
-        /// После сохранения оповещает всех клиентов об обновлении через SignalR.
+        /// Сохраняет указанное количество очков
         /// </summary>
-        /// <param name="state">Новое состояние игры для сохранения.</param>
-        /// <returns>Статус операции.</returns>
+        /// <param name="amount">Новое количество очков</param>
         [HttpPost("state")]
-        public async Task<ActionResult<ApiResult>> SaveState([FromBody] GameStateDto state)
+        public async Task<ActionResult<ApiResult>> SaveState([FromBody] long amount)
         {
             try
             {
-                await _pointManager.SaveStateAsync(state);
-                await _hubContext.Clients.All.SendAsync("ReceiveGameStateUpdate", state);
+                await _pointManager.SaveAmountAsync(amount);
+                await _hubContext.Clients.All.SendAsync("ReceiveAmountUpdate", amount);
 
                 return Ok(ApiResult.Ok(null, "Сохранено"));
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Ошибка при отправке SignalR");
+                Log.Error(ex, "Ошибка при сохранении");
                 return StatusCode(500, ApiResult.Fail("Ошибка сервера"));
             }
         }
 
         /// <summary>
-        /// Начисляет пассивный доход на основе текущих улучшений игры.
-        /// Вызывается автоматически таймером на клиенте (раз в текущий интервал игрока).
-        /// После начисления оповещает всех подключенных клиентов об обновлении состояния.
+        /// Начисляет пассивный доход на основе текущих улучшений
         /// </summary>
-        /// <returns>Обновленное состояние игры с новым количеством очков.</returns>
+        /// <returns>Новое количество очков</returns>
         [HttpPost("passive")]
-        public async Task<ActionResult<ApiResult>> ProcessPassive()
+        public async Task<ActionResult<ApiResult<long>>> ProcessPassive()
         {
             try
             {
-                var dto = await _pointManager.ProcessPassiveIncomeAsync();
-                await _hubContext.Clients.All.SendAsync("ReceiveGameStateUpdate", dto);
-                return Ok(ApiResult.Ok(dto, "Пассивный доход начислен"));
+                int pointsId = 1; // Временное решение
+
+                // Получаем параметры пассивного дохода из UpgradeManager
+                var effects = await _upgradeManager.GetCurrentEffectsAsync(pointsId);
+
+                // Передаем их в PointManager для начисления
+                var newAmount = await _pointManager.ProcessPassiveIncomeAsync(
+                    effects.PassiveIncome,
+                    effects.PassiveInterval
+                );
+
+                return Ok(ApiResult<long>.Ok(newAmount, "Пассивный доход начислен"));
             }
             catch (Exception ex)
             {
                 Log.Error(ex, "Ошибка при начислении пассивного дохода");
-                return StatusCode(500, ApiResult.Fail("Ошибка сервера"));
+                return StatusCode(500, ApiResult<long>.Fail("Ошибка сервера"));
             }
         }
     }

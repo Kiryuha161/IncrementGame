@@ -10,29 +10,23 @@ namespace Incremental.Core.Managers.Interfaces
     public interface IPointManager
     {
         /// <summary>
-        /// Получить игровое состояние на текущий момент
+        /// Получить текущее количество очков
         /// </summary>
-        /// <returns></returns>
-        Task<GameStateDto> GetStateAsync();
-
+        Task<long> GetCurrentAmountAsync();
 
         /// <summary>
-        /// Обрабатывает стандартный клик
+        /// Выполнить клик с указанной силой
         /// </summary>
-        /// <returns>GameStateDto</returns>
-        Task<GameStateDto> ClickAsync();
+        Task<long> ClickAsync(long clickPower);
 
         /// <summary>
-        /// Сохранение состояния игры
+        /// Сохранить количество очков
         /// </summary>
-        /// <param name="state"></param>
-        /// <returns></returns>
-        Task SaveStateAsync(GameStateDto state);
+        Task SaveAmountAsync(long amount);
 
         /// <summary>
-        /// Определение текущего пассивного дохода
+        /// Обработать пассивный доход с указанными параметрами
         /// </summary>
-        /// <returns></returns>
-        Task<GameStateDto> ProcessPassiveIncomeAsync();
+        Task<long> ProcessPassiveIncomeAsync(long passiveIncome, int passiveInterval);
     }
 }
