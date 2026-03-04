@@ -11,6 +11,7 @@ namespace Incremental.Data.Enums
         ClickPower,
         PassiveIncome,
         PassiveInterval,
-        DiscountAll
+        DiscountAll,
+        PowerBoost
     }
 }

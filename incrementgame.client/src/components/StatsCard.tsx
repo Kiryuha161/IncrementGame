@@ -1,8 +1,9 @@
-﻿import styles from '../App.module.css';
+﻿import type { ReactNode } from 'react';
+import styles from '../App.module.css';
 
 interface StatsCardProps {
     label: string;
-    value: string | number;
+    value: string | number | ReactNode;
     icon: string;
 }
 

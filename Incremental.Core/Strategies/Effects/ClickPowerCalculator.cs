@@ -9,6 +9,9 @@ using System.Threading.Tasks;
 
 namespace Incremental.Core.Strategies.Effects
 {
+    /// <summary>
+    /// Калькулятор для силы клика
+    /// </summary>
     public class ClickPowerCalculator : BaseEffectCalculator
     {
         public override UpgradeTypes UpgradeType => UpgradeTypes.ClickPower;

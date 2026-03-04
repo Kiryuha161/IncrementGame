@@ -9,6 +9,9 @@ using System.Threading.Tasks;
 
 namespace Incremental.Core.Strategies.Effects
 {
+    /// <summary>
+    /// Калькулятор для пассивного дохода
+    /// </summary>
     public class PassiveIncomeCalculator : BaseEffectCalculator
     {
         public override UpgradeTypes UpgradeType => UpgradeTypes.PassiveIncome;

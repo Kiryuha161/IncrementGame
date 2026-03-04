@@ -5,6 +5,8 @@ export interface UpgradeEffects {
     passiveIncome: number;
     passiveInterval: number;
     discountPercent?: number;
+    powerMultiplier: number;
+    powerLevel: number;
 }
 
 export interface Upgrade {

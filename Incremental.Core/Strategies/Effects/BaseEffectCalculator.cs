@@ -9,6 +9,11 @@ using System.Threading.Tasks;
 
 namespace Incremental.Core.Strategies.Effects
 {
+    /// <summary>
+    /// Базовый калькулятор улучшений, который обрабатывает определенный тип улучшения и предоставляет базовую логику 
+    /// для получения общей суммы значений этого типа улучшения. Наследники должны реализовать метод Calculate, 
+    /// который будет использовать эту сумму для расчета конкретного эффекта.
+    /// </summary>
     public abstract class BaseEffectCalculator : IEffectCalculator
     {
         /// <summary>

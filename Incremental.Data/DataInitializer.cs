@@ -82,6 +82,17 @@ namespace Incremental.Data
                 UpgradeType = UpgradeTypes.DiscountAll
             });
 
+            await EnsureUpgradeAsync("Мощь", new Upgrade
+            {
+                Name = "Мощь",
+                Description = "Увеличивает эффект уровня каждого умения, кроме Оптовика и Скорости, на 10% за уровень",
+                BaseValue = 10, // 10% за уровень
+                ValueMultiplier = 1.0m,
+                BasePrice = 5000,
+                PriceMultiplier = 2.0m,
+                UpgradeType = UpgradeTypes.PowerBoost
+            });
+
             // await _context.Upgrades.AddRangeAsync(upgrades);
             await _context.SaveChangesAsync();
         }

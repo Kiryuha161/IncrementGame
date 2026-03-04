@@ -12,5 +12,7 @@ namespace Incremental.Core.DTOs.Common
         public long PassiveIncome { get; set; }
         public int PassiveInterval { get; set; }
         public decimal DiscountPercent { get; set; }
+        public decimal PowerMultiplier { get; set; } = 1.0m;
+        public long PowerLevel { get; set; }
     }
 }

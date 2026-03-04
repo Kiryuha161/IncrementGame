@@ -8,6 +8,9 @@ export interface GameState {
     clickPower: number;
     passiveIncome: number;
     passiveInterval: number;
+    powerMultiplier: number;
+    powerLevel: number;
+    discountPercent?: number;
 }
 
 export function useGame() {
@@ -15,7 +18,9 @@ export function useGame() {
     const [effects, setEffects] = useState<UpgradeEffects>({
         clickPower: 1,
         passiveIncome: 0,
-        passiveInterval: 5000
+        passiveInterval: 5000,
+        powerMultiplier: 1,
+        powerLevel: 0
     });
     const [upgrades, setUpgrades] = useState<Upgrade[]>([]);
     const [playerUpgrades, setPlayerUpgrades] = useState<PlayerUpgrade[]>([]);
@@ -78,7 +83,14 @@ export function useGame() {
             console.log('📥 Загружены данные:', { initialAmount, initialEffects, availableUpgrades, playerUpgradesData });
 
             setAmount(initialAmount);
-            setEffects(initialEffects);
+            setEffects({
+                clickPower: initialEffects.clickPower,
+                passiveIncome: initialEffects.passiveIncome,
+                passiveInterval: initialEffects.passiveInterval,
+                discountPercent: initialEffects.discountPercent,
+                powerMultiplier: initialEffects.powerMultiplier ?? 1,
+                powerLevel: initialEffects.powerLevel ?? 0
+            });
             setUpgrades(availableUpgrades);
             setPlayerUpgrades(playerUpgradesData);
             setError(null);
@@ -129,7 +141,14 @@ export function useGame() {
                 getPlayerUpgrades()
             ]);
 
-            setEffects(newEffects);
+            setEffects({
+                clickPower: newEffects.clickPower,
+                passiveIncome: newEffects.passiveIncome,
+                passiveInterval: newEffects.passiveInterval,
+                discountPercent: newEffects.discountPercent,
+                powerMultiplier: newEffects.powerMultiplier ?? 1,
+                powerLevel: newEffects.powerLevel ?? 0
+            });
             setAmount(newAmount);
             setUpgrades(availableUpgrades);
             setPlayerUpgrades(playerUpgradesData);
@@ -145,7 +164,12 @@ export function useGame() {
     // Полное состояние для обратной совместимости
     const fullState: GameState = {
         value: amount,
-        ...effects
+        clickPower: effects.clickPower,
+        passiveIncome: effects.passiveIncome,
+        passiveInterval: effects.passiveInterval,
+        discountPercent: effects.discountPercent,
+        powerMultiplier: effects.powerMultiplier ?? 1,
+        powerLevel: effects.powerLevel ?? 0
     };
 
     return {
@@ -155,7 +179,10 @@ export function useGame() {
             setEffects({
                 clickPower: newState.clickPower,
                 passiveIncome: newState.passiveIncome,
-                passiveInterval: newState.passiveInterval
+                passiveInterval: newState.passiveInterval,
+                discountPercent: newState.discountPercent,
+                powerMultiplier: newState.powerMultiplier,
+                powerLevel: newState.powerLevel
             });
         },
         upgrades,

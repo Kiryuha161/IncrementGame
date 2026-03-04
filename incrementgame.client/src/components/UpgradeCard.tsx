@@ -5,6 +5,7 @@ interface UpgradeCardProps {
     upgrade: Upgrade;
     userPoints: number;
     loading: boolean;
+    powerMultiplier?: number;
     onBuy: (id: number) => void;
     additionalStats?: React.ReactNode;
 }
@@ -13,6 +14,7 @@ export function UpgradeCard({
     upgrade,
     userPoints,
     loading,
+    powerMultiplier = 1,
     onBuy,
     additionalStats
 }: UpgradeCardProps) {
@@ -20,13 +22,15 @@ export function UpgradeCard({
         upgrade.upgradeType === 'ClickPower' ? 'click' :
             upgrade.upgradeType === 'PassiveIncome' ? 'passive' :
                 upgrade.upgradeType === 'PassiveInterval' ? 'speed' :
-                    'discount'; 
+                    upgrade.upgradeType === 'DiscountAll' ? 'discount' :
+                        'power';
 
     const variantClass =
         variant === 'click' ? styles.clickUpgrade :
             variant === 'passive' ? styles.passiveUpgrade :
                 variant === 'speed' ? styles.speedUpgrade :
-                    styles.discountUpgrade; 
+                    variant === 'discount' ? styles.discountUpgrade :
+                        styles.powerUpgrade;
 
     const isDisabled = loading || userPoints < upgrade.currentPrice;
     const neededPoints = upgrade.currentPrice - userPoints;
@@ -37,9 +41,45 @@ export function UpgradeCard({
             return `${(value / 1000).toFixed(1)}с`;
         }
         if (upgrade.upgradeType === 'DiscountAll') {
-            return `${value}%`; //  Для скидки показываем проценты
+            return `${value}% скидки`;
+        }
+        if (upgrade.upgradeType === 'PowerBoost') {
+            return `+${value}% силы`;
         }
         return `+${value}`;
+    };
+
+    // Показываем усиленное значение для ClickPower и PassiveIncome
+    const getDisplayValue = () => {
+        if (powerMultiplier > 1 &&
+            (upgrade.upgradeType === 'ClickPower' || upgrade.upgradeType === 'PassiveIncome')) {
+            const boostedValue = Math.round(upgrade.currentValue * powerMultiplier);
+            return (
+                <span>
+                    {formatValue(boostedValue)}
+                    <span className={styles.baseValue}>
+                        ({formatValue(upgrade.currentValue)})
+                    </span>
+                </span>
+            );
+        }
+        return formatValue(upgrade.currentValue);
+    };
+
+    const getNextDisplayValue = () => {
+        if (powerMultiplier > 1 &&
+            (upgrade.upgradeType === 'ClickPower' || upgrade.upgradeType === 'PassiveIncome')) {
+            const boostedNextValue = Math.round(upgrade.nextValue * powerMultiplier);
+            return (
+                <span>
+                    {formatValue(boostedNextValue)}
+                    <span className={styles.baseValue}>
+                        ({formatValue(upgrade.nextValue)})
+                    </span>
+                </span>
+            );
+        }
+        return formatValue(upgrade.nextValue);
     };
 
     return (
@@ -53,8 +93,13 @@ export function UpgradeCard({
             )}
             <div className={styles.upgradeStats}>
                 <div>Уровень: {upgrade.currentLevel}</div>
-                <div>Текущее: {formatValue(upgrade.currentValue)}</div>
-                <div>Следующее: {formatValue(upgrade.nextValue)}</div>
+                <div>Текущее: {getDisplayValue()}</div>
+                <div>Следующее: {getNextDisplayValue()}</div>
+                {powerMultiplier > 1 && upgrade.upgradeType === 'PowerBoost' && (
+                    <div className={styles.powerMultiplier}>
+                        Текущий множитель: x{powerMultiplier.toFixed(2)}
+                    </div>
+                )}
                 {additionalStats}
             </div>
             <div className={styles.priceContainer}>

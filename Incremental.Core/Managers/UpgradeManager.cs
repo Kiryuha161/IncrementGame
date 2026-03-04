@@ -37,9 +37,26 @@ namespace Incremental.Core.Managers
                 PassiveInterval = 5000 
             };
 
-            foreach (var calculator in _calculators)
+            foreach (var calculator in _calculators.Where(c => c.UpgradeType != UpgradeTypes.PowerBoost))
             {
                 calculator.Calculate(playerUpgrades, result);
+            }
+
+            // Сохраняем базовые значения до применения множителя
+            var baseClickPower = result.ClickPower;
+            var basePassiveIncome = result.PassiveIncome;
+
+            // Применяем PowerBoost
+            var powerBoost = playerUpgrades
+                .Where(pu => pu.Upgrade.UpgradeType == UpgradeTypes.PowerBoost)
+                .Sum(pu => pu.CurrentValue);
+
+            if (powerBoost > 0)
+            {
+                result.PowerLevel = powerBoost;
+                result.PowerMultiplier = 1 + (powerBoost / 100m);
+                result.ClickPower = (long)(baseClickPower * result.PowerMultiplier);
+                result.PassiveIncome = (long)(basePassiveIncome * result.PowerMultiplier);
             }
 
             return result;
@@ -196,6 +213,8 @@ namespace Incremental.Core.Managers
                 UpgradeTypes.ClickPower => "⚡",
                 UpgradeTypes.PassiveIncome => "💰",
                 UpgradeTypes.PassiveInterval => "⏱️",
+                UpgradeTypes.DiscountAll => "🏷️",
+                UpgradeTypes.PowerBoost => "✨",
                 _ => "❓"
             };
         }

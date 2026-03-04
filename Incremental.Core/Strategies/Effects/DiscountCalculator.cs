@@ -9,6 +9,9 @@ using System.Threading.Tasks;
 
 namespace Incremental.Core.Strategies.Effects
 {
+    /// <summary>
+    /// Калькулятор скидки на все улучшения
+    /// </summary>
     public class DiscountCalculator : BaseEffectCalculator
     {
         public override UpgradeTypes UpgradeType => UpgradeTypes.DiscountAll;

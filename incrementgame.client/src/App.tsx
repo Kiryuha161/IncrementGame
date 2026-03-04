@@ -45,10 +45,19 @@ function App() {
 
     const formattedPassiveInterval = (state.passiveInterval / 1000).toFixed(1);
 
+    // Вычисляем базовые значения (без учета PowerBoost)
+    const baseClickPower = state.powerMultiplier > 1
+        ? Math.round(state.clickPower / state.powerMultiplier)
+        : state.clickPower;
+    const basePassiveIncome = state.powerMultiplier > 1
+        ? Math.round(state.passiveIncome / state.powerMultiplier)
+        : state.passiveIncome;
+
     const clickUpgrade = upgrades.find(u => u.upgradeType === 'ClickPower');
     const passiveUpgrade = upgrades.find(u => u.upgradeType === 'PassiveIncome');
     const speedUpgrade = upgrades.find(u => u.upgradeType === 'PassiveInterval');
-    const discountUpgrade = upgrades.find(u => u.upgradeType === 'DiscountAll'); 
+    const discountUpgrade = upgrades.find(u => u.upgradeType === 'DiscountAll');
+    const powerBoost = upgrades.find(u => u.upgradeType === 'PowerBoost');
 
     return (
         <div className={styles.container}>
@@ -64,13 +73,49 @@ function App() {
                 </h1>
 
                 <div className={styles.statsGrid}>
-                    <StatsCard label="Сила клика" value={state.clickPower} icon="⚡" />
-                    <StatsCard label="Пассивный доход" value={state.passiveIncome || 0} icon="💰" />
+                    <StatsCard
+                        label="Сила клика"
+                        value={
+                            <span>
+                                {state.clickPower}
+                                {state.powerMultiplier > 1 && (
+                                    <span className={styles.baseValue}>
+                                        ({baseClickPower} +{state.clickPower - baseClickPower})
+                                    </span>
+                                )}
+                            </span>
+                        }
+                        icon="⚡"
+                    />
+
+                    <StatsCard
+                        label="Пассивный доход"
+                        value={
+                            <span>
+                                {state.passiveIncome || 0}
+                                {state.powerMultiplier > 1 && state.passiveIncome > 0 && (
+                                    <span className={styles.baseValue}>
+                                        ({basePassiveIncome} +{state.passiveIncome - basePassiveIncome})
+                                    </span>
+                                )}
+                            </span>
+                        }
+                        icon="💰"
+                    />
+
                     <StatsCard
                         label="Интервал"
                         value={state.passiveInterval ? `${formattedPassiveInterval}с` : '0с'}
                         icon="⏱️"
                     />
+
+                    {state.powerMultiplier > 1 && (
+                        <StatsCard
+                            label="Усилитель"
+                            value={`x${state.powerMultiplier.toFixed(2)}`}
+                            icon="✨"
+                        />
+                    )}
                 </div>
 
                 <SyncStatus status={syncStatus} />
@@ -98,6 +143,7 @@ function App() {
                             upgrade={clickUpgrade}
                             userPoints={state.value}
                             loading={loading}
+                            powerMultiplier={state.powerMultiplier}
                             onBuy={(id) => {
                                 const upgrade = upgrades.find(u => u.id === id);
                                 if (upgrade) {
@@ -112,6 +158,7 @@ function App() {
                             upgrade={passiveUpgrade}
                             userPoints={state.value}
                             loading={loading}
+                            powerMultiplier={state.powerMultiplier}
                             onBuy={(id) => {
                                 const upgrade = upgrades.find(u => u.id === id);
                                 if (upgrade) {
@@ -126,6 +173,7 @@ function App() {
                             upgrade={speedUpgrade}
                             userPoints={state.value}
                             loading={loading}
+                            powerMultiplier={state.powerMultiplier}
                             onBuy={(id) => {
                                 const upgrade = upgrades.find(u => u.id === id);
                                 if (upgrade) {
@@ -140,11 +188,27 @@ function App() {
                         />
                     )}
 
-                    {discountUpgrade && ( 
+                    {discountUpgrade && (
                         <UpgradeCard
                             upgrade={discountUpgrade}
                             userPoints={state.value}
                             loading={loading}
+                            powerMultiplier={state.powerMultiplier}
+                            onBuy={(id) => {
+                                const upgrade = upgrades.find(u => u.id === id);
+                                if (upgrade) {
+                                    buyUpgrade(id, upgrade.currentPrice);
+                                }
+                            }}
+                        />
+                    )}
+
+                    {powerBoost && (
+                        <UpgradeCard
+                            upgrade={powerBoost}
+                            userPoints={state.value}
+                            loading={loading}
+                            powerMultiplier={state.powerMultiplier}
                             onBuy={(id) => {
                                 const upgrade = upgrades.find(u => u.id === id);
                                 if (upgrade) {

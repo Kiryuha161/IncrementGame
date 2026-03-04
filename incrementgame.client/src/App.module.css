@@ -424,3 +424,23 @@
     font-size: 0.8rem;
     font-weight: bold;
 }
+
+.powerUpgrade {
+    background-color: #f3e5f5;
+    border: 1px solid #ba68c8;
+}
+
+    .powerUpgrade .buyButton {
+        background-color: #9c27b0;
+    }
+
+        .powerUpgrade .buyButton:disabled {
+            background-color: #cccccc !important;
+        }
+
+.powerMultiplier {
+    color: #9c27b0;
+    font-weight: bold;
+    margin-top: 4px;
+    font-size: 0.9rem;
+}
