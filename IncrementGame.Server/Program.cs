@@ -3,6 +3,7 @@ using Incremental.Core.Managers.Interfaces;
 using Incremental.Core.ModelFactories.Interfaces;
 using Incremental.Core.Services;
 using Incremental.Core.Services.Interfaces;
+using Incremental.Core.Strategies.Effects;
 using Incremental.Data;
 using Incremental.Data.Interfaces;
 using IncrementGame.Server.Hubs;
@@ -72,6 +73,11 @@ namespace IncrementGame.Server
                 builder.Services.AddScoped<IGameCalculationService, GameCalculationService>();
                 builder.Services.AddScoped<IDataInitializer, DataInitializer>();
                 builder.Services.AddScoped<SingleGameCacheManager>();
+
+                builder.Services.AddScoped<IEffectCalculator, ClickPowerCalculator>();
+                builder.Services.AddScoped<IEffectCalculator, PassiveIncomeCalculator>();
+                builder.Services.AddScoped<IEffectCalculator, PassiveIntervalCalculator>();
+                builder.Services.AddScoped<IEffectCalculator, DiscountCalculator>();
 
                 var app = builder.Build();
 

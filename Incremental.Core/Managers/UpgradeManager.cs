@@ -1,5 +1,6 @@
 ﻿using Incremental.Core.DTOs.Common;
 using Incremental.Core.Managers.Interfaces;
+using Incremental.Core.Strategies.Effects;
 using Incremental.Data;
 using Incremental.Data.Domain;
 using Incremental.Data.Enums;
@@ -14,10 +15,13 @@ namespace Incremental.Core.Managers
     public class UpgradeManager : IUpgradeManager
     {
         private readonly ProjectContext _context;
+        private readonly IEnumerable<IEffectCalculator> _calculators;
 
-        public UpgradeManager(ProjectContext context)
+        public UpgradeManager(ProjectContext context,
+            IEnumerable<IEffectCalculator> calculators)
         {
             _context = context;
+            _calculators = calculators;
         }
 
         public async Task<UpgradeEffectsDto> GetCurrentEffectsAsync(int pointsId)
@@ -27,32 +31,18 @@ namespace Incremental.Core.Managers
                 .Where(pu => pu.PointsId == pointsId)
                 .ToListAsync();
 
-            var clickPower = playerUpgrades
-                .Where(pu => pu.Upgrade.UpgradeType == UpgradeTypes.ClickPower)
-                .Sum(pu => pu.CurrentValue);
-
-            var passiveIncome = playerUpgrades
-                .Where(pu => pu.Upgrade.UpgradeType == UpgradeTypes.PassiveIncome)
-                .Sum(pu => pu.CurrentValue);
-
-            var intervalBonus = playerUpgrades
-                .Where(pu => pu.Upgrade.UpgradeType == UpgradeTypes.PassiveInterval)
-                .Sum(pu => pu.CurrentValue);
-
-            var discountBonus = playerUpgrades
-               .Where(pu => pu.Upgrade.UpgradeType == UpgradeTypes.DiscountAll)
-               .Sum(pu => pu.CurrentValue);
-
-            var passiveInterval = Math.Max(1000, 5000 - (int)intervalBonus);
-            var discountPercent = Math.Min(0.5m, discountBonus / 100m);
-
-            return new UpgradeEffectsDto
+            var result = new UpgradeEffectsDto
             {
-                ClickPower = clickPower > 0 ? clickPower : 1,
-                PassiveIncome = passiveIncome,
-                PassiveInterval = passiveInterval,
-                DiscountPercent = discountPercent
+                ClickPower = 1, 
+                PassiveInterval = 5000 
             };
+
+            foreach (var calculator in _calculators)
+            {
+                calculator.Calculate(playerUpgrades, result);
+            }
+
+            return result;
         }
 
         public async Task<List<UpgradeDto>> GetAvailableUpgradesAsync(int pointsId)
@@ -158,18 +148,14 @@ namespace Incremental.Core.Managers
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
 
-            await _context.Entry(playerUpgrade)
-                .Reference(pu => pu.Upgrade)
-                .LoadAsync();
-
             return new PlayerUpgradeDto
             {
                 UpgradeId = playerUpgrade.UpgradeId,
-                Name = playerUpgrade.Upgrade.Name,
+                Name = upgrade.Name,
                 Level = playerUpgrade.Level,
                 CurrentValue = playerUpgrade.CurrentValue,
                 NextPrice = playerUpgrade.NextPrice,
-                NextValue = playerUpgrade.Upgrade.BaseValue * (playerUpgrade.Level + 1)
+                NextValue = upgrade.BaseValue * (playerUpgrade.Level + 1)
             };
         }
 
