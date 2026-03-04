@@ -15,6 +15,8 @@ namespace Incremental.Data
         public DbSet<Point> Points { get; set; }
         public DbSet<Upgrade> Upgrades { get; set; }
         public DbSet<PlayerUpgrade> PlayerUpgrades { get; set; }
+        public DbSet<Achievement> Achievements { get; set; }
+        public DbSet<PlayerAchievement> PlayerAchievements { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
