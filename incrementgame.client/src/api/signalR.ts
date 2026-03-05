@@ -18,7 +18,7 @@ export const startSignalR = (
         .build();
 
     connection.on('ReceiveAmountUpdate', (amount: number) => {
-        console.log('💰 SignalR принял сумму:', amount);
+        console.log('💰 SignalR принял сумму:', amount, 'время:', new Date().toISOString());
         onAmountUpdate(amount);
     });
 

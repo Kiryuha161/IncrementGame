@@ -115,6 +115,8 @@ namespace IncrementGame.Server.Controllers
                     effects.PassiveInterval
                 );
 
+                await _hubContext.Clients.All.SendAsync("ReceiveAmountUpdate", newAmount);
+
                 return Ok(ApiResult<long>.Ok(newAmount, "Пассивный доход начислен"));
             }
             catch (Exception ex)

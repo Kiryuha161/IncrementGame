@@ -29,7 +29,7 @@ export function useGame() {
     const [syncStatus, setSyncStatus] = useState<'synced' | 'syncing' | 'error'>('synced');
     const [activeClients, setActiveClients] = useState<number>(0);
 
-    // SignalR подписка
+    // SignalR подписка - ЕДИНСТВЕННЫЙ источник обновлений количества
     useEffect(() => {
         startSignalR(
             (newAmount: number) => {
@@ -48,7 +48,7 @@ export function useGame() {
         };
     }, []);
 
-    // Пассивный доход
+    // Пассивный доход - только отправляем запрос, не обновляем локально
     useEffect(() => {
         if (effects.passiveInterval <= 0 || effects.passiveIncome <= 0) return;
 
@@ -56,8 +56,8 @@ export function useGame() {
 
         const timer = setInterval(async () => {
             try {
-                const newAmount = await processPassiveIncome();
-                setAmount(newAmount);
+                await processPassiveIncome(); // Не используем возвращаемое значение
+                // Состояние обновится через SignalR
             } catch (err) {
                 console.error('Passive income error:', err);
             }
@@ -106,14 +106,12 @@ export function useGame() {
         loadAllData();
     }, []);
 
-    // Клик
+    // Клик - только отправляем запрос, не обновляем локально
     const click = useCallback(async () => {
         setSyncStatus('syncing');
         try {
-            const newAmount = await clickGame(effects.clickPower);
-            console.log('🖱️ Клик:', newAmount);
-            setAmount(newAmount);
-            setSyncStatus('synced');
+            await clickGame(effects.clickPower); // Не используем возвращаемое значение
+            // Состояние обновится через SignalR
         } catch (err) {
             console.error('❌ Ошибка клика:', err);
             setSyncStatus('error');
@@ -128,15 +126,13 @@ export function useGame() {
             return;
         }
 
-        setAmount(prev => prev - price);
-
         try {
             const result = await buyUpgrade(upgradeId);
             console.log('✅ Улучшение куплено:', result);
 
-            const [newEffects, newAmount, availableUpgrades, playerUpgradesData] = await Promise.all([
+            // Обновляем эффекты (не количество - оно придет через SignalR)
+            const [newEffects, availableUpgrades, playerUpgradesData] = await Promise.all([
                 getUpgradeEffects(),
-                getGameState(),
                 getAvailableUpgrades(),
                 getPlayerUpgrades()
             ]);
@@ -149,13 +145,11 @@ export function useGame() {
                 powerMultiplier: newEffects.powerMultiplier ?? 1,
                 powerLevel: newEffects.powerLevel ?? 0
             });
-            setAmount(newAmount);
             setUpgrades(availableUpgrades);
             setPlayerUpgrades(playerUpgradesData);
 
             setError(null);
         } catch (err: any) {
-            setAmount(prev => prev + price);
             console.error('❌ Ошибка покупки:', err);
             setError(err.message || 'Ошибка при покупке');
         }
