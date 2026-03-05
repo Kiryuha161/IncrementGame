@@ -93,6 +93,10 @@ export function useGame() {
             });
             setUpgrades(availableUpgrades);
             setPlayerUpgrades(playerUpgradesData);
+
+            // После загрузки сразу начисляем пассивный доход
+            await processPassiveIncome(); // Состояние обновится через SignalR
+
             setError(null);
         } catch (err) {
             console.error('❌ Ошибка загрузки:', err);
