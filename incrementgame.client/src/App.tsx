@@ -53,12 +53,6 @@ function App() {
         ? Math.round(state.passiveIncome / state.powerMultiplier)
         : state.passiveIncome;
 
-    const clickUpgrade = upgrades.find(u => u.upgradeType === 'ClickPower');
-    const passiveUpgrade = upgrades.find(u => u.upgradeType === 'PassiveIncome');
-    const speedUpgrade = upgrades.find(u => u.upgradeType === 'PassiveInterval');
-    const discountUpgrade = upgrades.find(u => u.upgradeType === 'DiscountAll');
-    const powerBoost = upgrades.find(u => u.upgradeType === 'PowerBoost');
-
     return (
         <div className={styles.container}>
             <ErrorToast
@@ -138,85 +132,28 @@ function App() {
 
             {showUpgrades && (
                 <div className={styles.upgradesGrid}>
-                    {clickUpgrade && (
+                    {upgrades.map(upgrade => (
                         <UpgradeCard
-                            upgrade={clickUpgrade}
+                            key={upgrade.id}
+                            upgrade={upgrade}
                             userPoints={state.value}
                             loading={loading}
                             powerMultiplier={state.powerMultiplier}
                             onBuy={(id) => {
-                                const upgrade = upgrades.find(u => u.id === id);
-                                if (upgrade) {
-                                    buyUpgrade(id, upgrade.currentPrice);
-                                }
-                            }}
-                        />
-                    )}
-
-                    {passiveUpgrade && (
-                        <UpgradeCard
-                            upgrade={passiveUpgrade}
-                            userPoints={state.value}
-                            loading={loading}
-                            powerMultiplier={state.powerMultiplier}
-                            onBuy={(id) => {
-                                const upgrade = upgrades.find(u => u.id === id);
-                                if (upgrade) {
-                                    buyUpgrade(id, upgrade.currentPrice);
-                                }
-                            }}
-                        />
-                    )}
-
-                    {speedUpgrade && (
-                        <UpgradeCard
-                            upgrade={speedUpgrade}
-                            userPoints={state.value}
-                            loading={loading}
-                            powerMultiplier={state.powerMultiplier}
-                            onBuy={(id) => {
-                                const upgrade = upgrades.find(u => u.id === id);
-                                if (upgrade) {
-                                    buyUpgrade(id, upgrade.currentPrice);
+                                const found = upgrades.find(u => u.id === id);
+                                if (found) {
+                                    buyUpgrade(id, found.currentPrice);
                                 }
                             }}
                             additionalStats={
-                                <div className={styles.upgradeStat}>
-                                    ⏱️ Текущий интервал: {formattedPassiveInterval}с
-                                </div>
+                                upgrade.upgradeType === 'PassiveInterval' ? (
+                                    <div className={styles.upgradeStat}>
+                                        ⏱️ Текущий интервал: {formattedPassiveInterval}с
+                                    </div>
+                                ) : undefined
                             }
                         />
-                    )}
-
-                    {discountUpgrade && (
-                        <UpgradeCard
-                            upgrade={discountUpgrade}
-                            userPoints={state.value}
-                            loading={loading}
-                            powerMultiplier={state.powerMultiplier}
-                            onBuy={(id) => {
-                                const upgrade = upgrades.find(u => u.id === id);
-                                if (upgrade) {
-                                    buyUpgrade(id, upgrade.currentPrice);
-                                }
-                            }}
-                        />
-                    )}
-
-                    {powerBoost && (
-                        <UpgradeCard
-                            upgrade={powerBoost}
-                            userPoints={state.value}
-                            loading={loading}
-                            powerMultiplier={state.powerMultiplier}
-                            onBuy={(id) => {
-                                const upgrade = upgrades.find(u => u.id === id);
-                                if (upgrade) {
-                                    buyUpgrade(id, upgrade.currentPrice);
-                                }
-                            }}
-                        />
-                    )}
+                    ))}
                 </div>
             )}
 
